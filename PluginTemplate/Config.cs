@@ -13,6 +13,10 @@ namespace AverageTerrariaMain
     {
 		public string infoMessage { get; set; } = "Insert text here!";
 
+		public string discordMessage { get; set; } = "Insert discord here!";
+
+		public string arenaRegionName { get; set; } = "arena";
+
 		public static Config Read()
 		{
 			string filepath = Path.Combine(TShock.SavePath, "AverageTerraria.json");
