@@ -5,6 +5,8 @@ using Terraria;
 using TerrariaApi.Server;
 using TShockAPI;
 using Terraria.ID;
+using System.Timers;
+using Microsoft.Xna.Framework;
 
 namespace PluginTemplate
 {
@@ -14,6 +16,10 @@ namespace PluginTemplate
     [ApiVersion(2, 1)]
     public class AvMain : TerrariaPlugin
     {
+		internal static readonly AvPlayers Players = new AvPlayers();
+
+		public Timer bcTimer;
+
         /// <summary>
         /// The name of the plugin.
         /// </summary>
@@ -52,18 +58,133 @@ namespace PluginTemplate
         public override void Initialize()
         {
             ServerApi.Hooks.GameInitialize.Register(this, onInitialize);
-            Console.WriteLine("Average Main LOADED");
+			ServerApi.Hooks.ServerChat.Register(this, onChat);
+			ServerApi.Hooks.NetGreetPlayer.Register(this, onGreet);
+			TShockAPI.Hooks.RegionHooks.RegionEntered += onRegionEnter;
+			TShockAPI.Hooks.RegionHooks.RegionLeft += onRegionLeave;
+			Console.WriteLine("Average Main LOADED");
         }
 
+		public void broadcastMessage(Object source, ElapsedEventArgs args)
+        {
+			Random rnd = new Random();
+			TSPlayer.All.SendMessage("[" + Config.serverName + "] " + Config.broadcastMessages[rnd.Next(0, Config.broadcastMessages.Count)], Microsoft.Xna.Framework.Color.Aquamarine);
+        }
 
         void onInitialize(EventArgs e)
         {
             Config = Config.Read();
             Commands.ChatCommands.Add(new Command("av.info", infoCommand, "info"));
             Commands.ChatCommands.Add(new Command("av.boss", fightCommand, "boss"));
-            Commands.ChatCommands.Add(new Command("av.discord", discordInvite, "discord"));
+			Commands.ChatCommands.Add(new Command("av.apply", applyStaffCommand, "apply", "applyforstaff"));
+			Commands.ChatCommands.Add(new Command("av.pvp", tpToPvpCommand, "pvparena"));
+			Commands.ChatCommands.Add(new Command("av.discord", discordInvite, "discord"));
             Commands.ChatCommands.Add(new Command("av.reload", reloadCommand, "avreload"));
+			Commands.ChatCommands.Add(new Command("av.stuck", stuckCommand, "stuck", "imstuck"));
+			Commands.ChatCommands.Add(new Command("av.vanish", vanishCommand, "vanish", "invis"));
 
+			bcTimer = new Timer(Config.bcInterval*1000*60); //minutes
+
+			bcTimer.Elapsed += broadcastMessage;
+			bcTimer.AutoReset = true;
+			bcTimer.Enabled = true;
+		}
+
+		void onGreet(GreetPlayerEventArgs args)
+        {
+			var ply = TShock.Players[args.Who];
+
+			Players.Add(new AvPlayer(ply.Name));
+        }
+
+		void onRegionEnter(TShockAPI.Hooks.RegionHooks.RegionEnteredEventArgs args)
+        {
+
+
+			if(args.Region.Name == Config.pvpArena)
+            {
+				args.Player.SetPvP(true);
+            }
+        }
+
+		void onRegionLeave(TShockAPI.Hooks.RegionHooks.RegionLeftEventArgs args)
+		{
+			if (args.Region.Name == Config.pvpArena)
+			{
+				args.Player.SetPvP(false);
+			}
+		}
+
+		void applyStaffCommand(CommandArgs args)
+        {
+			args.Player.SendInfoMessage("Head to averageterraria.lol, register an account, and fill out the staff template under the 'Staff Applications' tag! Thanks for considering applying :)");
+		}
+
+		void tpToPvpCommand(CommandArgs args)
+        {
+			var warp = TShock.Warps.Find(Config.pvpArena);
+			var player = args.Player;
+
+			player.Teleport(warp.Position.X, warp.Position.Y);
+			args.Player.SendSuccessMessage("You have been sent to the PvP arena!");
+		}
+
+		//coming soon-ish? if i can figure out how to implement
+		void vanishCommand(CommandArgs args)
+        {
+			var player = Players.GetByUsername(args.Player.Name);
+
+
+			//if (player.isVanished == true)
+   //         {
+
+   //         }
+   //         else
+   //         {
+			//	TSPlayer.All.SendMessage(player.name + " has left.", Microsoft.Xna.Framework.Color.LightYellow);
+			//	player.tsPlayer.SetBuff(BuffID.Invisibility, 360000);
+				
+				
+   //         }
+        }
+
+		void stuckCommand(CommandArgs args)
+        {
+			var player = args.Player;
+			var spawn = TShock.Warps.Find(Config.spawnName);
+
+			player.Teleport(spawn.Position.X, spawn.Position.Y);
+			args.Player.SendSuccessMessage("You have been sent back to spawn! Unstuck :>");
+		}
+
+		void onChat(ServerChatEventArgs args)
+        {
+
+			bool anyoneInArena = false;
+
+            
+				foreach(TSPlayer player in TShock.Players)
+                {
+					
+					if(player.CurrentRegion.Name == Config.arenaRegionName)
+                    {
+						anyoneInArena = true;
+                    }
+                }
+
+				if(anyoneInArena == false)
+                {
+
+				for (int i = 0; i < Main.npc.Length; i++)
+				{
+					if (Main.npc[i].active && ((!Main.npc[i].townNPC && Main.npc[i].netID != NPCID.TargetDummy)))
+					{
+						TSPlayer.Server.StrikeNPC(i, (int)(Main.npc[i].life + (Main.npc[i].defense * 0.6)), 0, 0);
+					}
+				}
+
+			}
+            
         }
 
         void infoCommand(CommandArgs args)
@@ -86,6 +207,10 @@ namespace PluginTemplate
                     NPC npc = new NPC();
                     int amount = 1;
                     string spawnName;
+					if(EssentialsPlus.Commands.FreezeTimer.Enabled == true)
+                    {
+						EssentialsPlus.Commands.FreezeTimer.Stop();
+                    }
                     switch (args.Parameters[0].ToLower())
                     {
                         case "*":
@@ -249,26 +374,6 @@ namespace PluginTemplate
 							TSPlayer.Server.SpawnNPC(npc.type, npc.FullName, amount, args.Player.TileX, args.Player.TileY);
 							spawnName = "A Martian Saucer";
 							break;
-						case "solar pillar":
-							npc.SetDefaults(517);
-							TSPlayer.Server.SpawnNPC(npc.type, npc.FullName, amount, args.Player.TileX, args.Player.TileY);
-							spawnName = "A Solar Pillar";
-							break;
-						case "nebula pillar":
-							npc.SetDefaults(507);
-							TSPlayer.Server.SpawnNPC(npc.type, npc.FullName, amount, args.Player.TileX, args.Player.TileY);
-							spawnName = "A Nebula Pillar";
-							break;
-						case "vortex pillar":
-							npc.SetDefaults(422);
-							TSPlayer.Server.SpawnNPC(npc.type, npc.FullName, amount, args.Player.TileX, args.Player.TileY);
-							spawnName = "A Vortex Pillar";
-							break;
-						case "stardust pillar":
-							npc.SetDefaults(493);
-							TSPlayer.Server.SpawnNPC(npc.type, npc.FullName, amount, args.Player.TileX, args.Player.TileY);
-							spawnName = "A Stardust Pillar";
-							break;
 						case "deerclops":
 							npc.SetDefaults(668);
 							TSPlayer.Server.SpawnNPC(npc.type, npc.FullName, amount, args.Player.TileX, args.Player.TileY);
@@ -314,11 +419,13 @@ namespace PluginTemplate
         {
             if (disposing)
             {
-                //unhook
-                //dispose child objects
-                //set large objects to null
+				ServerApi.Hooks.GameInitialize.Deregister(this, onInitialize);
+				ServerApi.Hooks.ServerChat.Deregister(this, onChat);
+				ServerApi.Hooks.NetGreetPlayer.Deregister(this, onGreet);
+				TShockAPI.Hooks.RegionHooks.RegionEntered -= onRegionEnter;
+				TShockAPI.Hooks.RegionHooks.RegionLeft -= onRegionLeave;
 
-            }
+			}
             base.Dispose(disposing);
         }
 

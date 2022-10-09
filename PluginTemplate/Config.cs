@@ -17,6 +17,15 @@ namespace AverageTerrariaMain
 
 		public string arenaRegionName { get; set; } = "arena";
 
+		public string pvpArena { get; set; } = "pvp";
+
+		public string serverName { get; set; } = "Average's Terraria";
+		public List<string> broadcastMessages { get; set; } = new List<string> {};
+
+		public int bcInterval { get; set; } = 2;
+
+		public string spawnName { get; set; } = "spawn";
+
 		public static Config Read()
 		{
 			string filepath = Path.Combine(TShock.SavePath, "AverageTerraria.json");
