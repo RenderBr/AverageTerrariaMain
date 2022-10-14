@@ -77,11 +77,16 @@ namespace PluginTemplate
             Commands.ChatCommands.Add(new Command("av.info", infoCommand, "info"));
             Commands.ChatCommands.Add(new Command("av.boss", fightCommand, "boss"));
 			Commands.ChatCommands.Add(new Command("av.apply", applyStaffCommand, "apply", "applyforstaff"));
-			Commands.ChatCommands.Add(new Command("av.pvp", tpToPvpCommand, "pvparena"));
+			Commands.ChatCommands.Add(new Command("av.pvp", tpToPvpCommand, "pvparena", "parena"));
+			Commands.ChatCommands.Add(new Command("av.boss", tpToPvpCommand, "bossarena", "arena", "barena"));
 			Commands.ChatCommands.Add(new Command("av.discord", discordInvite, "discord"));
             Commands.ChatCommands.Add(new Command("av.reload", reloadCommand, "avreload"));
 			Commands.ChatCommands.Add(new Command("av.stuck", stuckCommand, "stuck", "imstuck"));
 			Commands.ChatCommands.Add(new Command("av.vanish", vanishCommand, "vanish", "invis"));
+			Commands.ChatCommands.Add(new Command("av.stoprain", stopRainCommand, "stoprain", "sr"));
+			Commands.ChatCommands.Add(new Command("av.tpAverage", tpToAverage, "average", "av", "tpav"));
+
+
 
 			bcTimer = new Timer(Config.bcInterval*1000*60); //minutes
 
@@ -97,13 +102,48 @@ namespace PluginTemplate
 			Players.Add(new AvPlayer(ply.Name));
         }
 
+		void stopRainCommand(CommandArgs args)
+        {
+			if(Main.IsItRaining == true)
+            {
+				Main.StopRain();
+				TSPlayer.All.SendData(PacketTypes.WorldInfo);
+				TSPlayer.All.SendInfoMessage("{0} stopped the rain!", args.Player.Account.Name);
+            }
+            else
+            {
+				args.Player.SendInfoMessage("It's not currently raining?");
+            }
+        }
+
+		void tpToAverage(CommandArgs args)
+        {
+			TSPlayer average = TSPlayer.FindByNameOrID("Average")[0];
+
+            if (!average.TPAllow)
+            {
+				args.Player.SendMessage("Average has currently disabled TPs! :<", Color.OrangeRed);
+				return;
+			}
+
+			if (average.ConnectionAlive == true)
+			{
+				args.Player.Teleport(average.LastNetPosition.X, average.LastNetPosition.Y);
+				args.Player.SendMessage("You have been teleported to Average! :>", Color.Aquamarine);
+			}
+			else
+            {
+				args.Player.SendMessage("Average is not currently online! :<", Color.OrangeRed);
+            }
+        }
+
 		void onRegionEnter(TShockAPI.Hooks.RegionHooks.RegionEnteredEventArgs args)
         {
-
 
 			if(args.Region.Name == Config.pvpArena)
             {
 				args.Player.SetPvP(true);
+				args.Player.SendInfoMessage("Your PvP has been auto-turned on!");
             }
         }
 
@@ -112,6 +152,7 @@ namespace PluginTemplate
 			if (args.Region.Name == Config.pvpArena)
 			{
 				args.Player.SetPvP(false);
+				args.Player.SendInfoMessage("Your PvP has been auto-turned off!");
 			}
 		}
 
@@ -125,8 +166,17 @@ namespace PluginTemplate
 			var warp = TShock.Warps.Find(Config.pvpArena);
 			var player = args.Player;
 
-			player.Teleport(warp.Position.X, warp.Position.Y);
+			player.Teleport(warp.Position.X * 16, warp.Position.Y * 16);
 			args.Player.SendSuccessMessage("You have been sent to the PvP arena!");
+		}
+
+		void tpToArena(CommandArgs args)
+		{
+			var warp = TShock.Warps.Find(Config.arenaRegionName);
+			var player = args.Player;
+
+			player.Teleport(warp.Position.X * 16, warp.Position.Y * 16);
+			args.Player.SendSuccessMessage("You have been sent to the boss arena!");
 		}
 
 		//coming soon-ish? if i can figure out how to implement
@@ -153,37 +203,13 @@ namespace PluginTemplate
 			var player = args.Player;
 			var spawn = TShock.Warps.Find(Config.spawnName);
 
-			player.Teleport(spawn.Position.X, spawn.Position.Y);
+			player.Teleport(spawn.Position.X * 16, spawn.Position.Y * 16);
 			args.Player.SendSuccessMessage("You have been sent back to spawn! Unstuck :>");
 		}
 
 		void onChat(ServerChatEventArgs args)
         {
 
-			bool anyoneInArena = false;
-
-            
-				foreach(TSPlayer player in TShock.Players)
-                {
-					
-					if(player.CurrentRegion.Name == Config.arenaRegionName)
-                    {
-						anyoneInArena = true;
-                    }
-                }
-
-				if(anyoneInArena == false)
-                {
-
-				for (int i = 0; i < Main.npc.Length; i++)
-				{
-					if (Main.npc[i].active && ((!Main.npc[i].townNPC && Main.npc[i].netID != NPCID.TargetDummy)))
-					{
-						TSPlayer.Server.StrikeNPC(i, (int)(Main.npc[i].life + (Main.npc[i].defense * 0.6)), 0, 0);
-					}
-				}
-
-			}
             
         }
 
