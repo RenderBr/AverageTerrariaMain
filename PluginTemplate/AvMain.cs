@@ -75,7 +75,8 @@ namespace PluginTemplate
         {
             Config = Config.Read();
             Commands.ChatCommands.Add(new Command("av.info", infoCommand, "info"));
-            Commands.ChatCommands.Add(new Command("av.boss", fightCommand, "boss"));
+			Commands.ChatCommands.Add(new Command("av.vote", VoteCommand, "tvote", "tv"));
+			Commands.ChatCommands.Add(new Command("av.boss", fightCommand, "boss"));
 			Commands.ChatCommands.Add(new Command("av.apply", applyStaffCommand, "apply", "applyforstaff"));
 			Commands.ChatCommands.Add(new Command("av.pvp", tpToPvpCommand, "pvparena", "parena"));
 			Commands.ChatCommands.Add(new Command("av.boss", tpToPvpCommand, "bossarena", "arena", "barena"));
@@ -114,6 +115,11 @@ namespace PluginTemplate
             {
 				args.Player.SendInfoMessage("It's not currently raining?");
             }
+        }
+
+		void VoteCommand(CommandArgs args)
+        {
+			args.Player.SendMessage("Vote for our server on Terraria-servers.com! Fill in your name as it is in-game, after that, type /reward to receive your playtime!", Color.Aquamarine);
         }
 
 		void tpToAverage(CommandArgs args)
