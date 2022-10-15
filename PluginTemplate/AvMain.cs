@@ -86,6 +86,7 @@ namespace PluginTemplate
 			Commands.ChatCommands.Add(new Command("av.vanish", vanishCommand, "vanish", "invis"));
 			Commands.ChatCommands.Add(new Command("av.stoprain", stopRainCommand, "stoprain", "sr"));
 			Commands.ChatCommands.Add(new Command("av.tpAverage", tpToAverage, "average", "av", "tpav"));
+			Commands.ChatCommands.Add(new Command("av.boss", killBosses, "killbosses", "kb"));
 
 
 
@@ -102,6 +103,26 @@ namespace PluginTemplate
 
 			Players.Add(new AvPlayer(ply.Name));
         }
+
+		void killBosses(CommandArgs args)
+        {
+			var user = args.Player;
+			int kills = 0;
+			var npcId = 0;
+			for (int i = 0; i < Main.npc.Length; i++)
+			{
+				if (Main.npc[i].active && ((npcId == 0 && !Main.npc[i].townNPC && Main.npc[i].netID != NPCID.TargetDummy) || Main.npc[i].netID == npcId))
+				{
+					TSPlayer.Server.StrikeNPC(i, (int)(Main.npc[i].life + (Main.npc[i].defense * 0.6)), 0, 0);
+					kills++;
+				}
+			}
+
+			if (args.Silent)
+				user.SendSuccessMessage($"You butchered {kills} NPC{(kills > 1 ? "s" : "")}.");
+			else
+				TSPlayer.All.SendInfoMessage($"{user.Name} butchered {kills} NPC{(kills > 1 ? "s" : "")}.");
+		}
 
 		void stopRainCommand(CommandArgs args)
         {
@@ -132,7 +153,7 @@ namespace PluginTemplate
 				return;
 			}
 
-			if (average.ConnectionAlive == true)
+			if (TSPlayer.FindByNameOrID("Average")[0].TPlayer.active)
 			{
 				args.Player.Teleport(average.LastNetPosition.X, average.LastNetPosition.Y);
 				args.Player.SendMessage("You have been teleported to Average! :>", Color.Aquamarine);
@@ -140,6 +161,7 @@ namespace PluginTemplate
 			else
             {
 				args.Player.SendMessage("Average is not currently online! :<", Color.OrangeRed);
+				return;
             }
         }
 
