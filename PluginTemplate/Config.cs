@@ -15,11 +15,7 @@ namespace AverageTerrariaMain
 
 		public string discordMessage { get; set; } = "Insert discord here!";
 
-		public string arenaRegionName { get; set; } = "arena";
-
-		public string pvpArena { get; set; } = "pvp";
-
-		public string serverName { get; set; } = "Average's Terraria";
+		public string serverName { get; set; } = "Average's Survival";
 		public List<string> broadcastMessages { get; set; } = new List<string> {};
 
 		public int bcInterval { get; set; } = 2;

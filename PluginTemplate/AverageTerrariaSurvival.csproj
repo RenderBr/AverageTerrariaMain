@@ -7,8 +7,8 @@
     <ProjectGuid>{DCA3A85E-22A6-48E2-998D-343C2BE8402F}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>AverageTerrariaMain</RootNamespace>
-    <AssemblyName>AverageTerrariaMain</AssemblyName>
+    <RootNamespace>AverageTerrariaSurvival</RootNamespace>
+    <AssemblyName>AverageTerrariaSurvival</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
