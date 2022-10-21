@@ -62,6 +62,7 @@ namespace PluginTemplate
 			ServerApi.Hooks.ServerChat.Register(this, onChat);
 			ServerApi.Hooks.NetGreetPlayer.Register(this, onGreet);
             ServerApi.Hooks.NetSendData.Register(this, NetHooks_SendData);
+            ServerApi.Hooks.NpcSpawn.Register(this, onBossSpawn);
             TShockAPI.GetDataHandlers.TileEdit += onTileEdit;
             TShockAPI.GetDataHandlers.NPCStrike += strikeNPC;
 			TShockAPI.Hooks.RegionHooks.RegionEntered += onRegionEnter;
@@ -73,6 +74,23 @@ namespace PluginTemplate
         {
 			Random rnd = new Random();
 			TSPlayer.All.SendMessage("[" + Config.serverName + "] " + Config.broadcastMessages[rnd.Next(0, Config.broadcastMessages.Count)], Microsoft.Xna.Framework.Color.Aquamarine);
+        }
+
+        void onBossSpawn(NpcSpawnEventArgs args)
+        {
+            NPC npc = Main.npc[args.NpcId];
+
+            if(npc.netID == NPCID.EyeofCthulhu)
+            {
+                
+                TSPlayer.All.SendMessage("A suspicious looking eye is upon us!", Color.Red);
+                npc.lifeMax = 3600;
+                npc.life = 3600;
+                npc.GivenName = "Suspicious Eye";
+                npc.scale = 500;
+                TSPlayer.All.Sen(PacketTypes.Npc, "", args.NpcId);
+                args.Handled = true;
+            }
         }
 
         void onInitialize(EventArgs e)
@@ -103,12 +121,12 @@ namespace PluginTemplate
             if(e.MsgId == PacketTypes.NpcStrike)
             {
                 NPC npc = Main.npc[e.number];
-
+                Console.WriteLine("Net ID: " + npc.netID + ", e.Num: " + e.number + ", NPC.Type: " + npc.type);
                 if(npc.life <= 0)
                 {
-                    if (Main.npc[e.number].type == NPCID.BlueSlime || npc.type == NPCID.GreenSlime)
+                    // BLUE OR GREEN SLIME
+                    if (npc.netID == NPCID.BlueSlime || npc.netID == NPCID.GreenSlime)
                     {
-                        Console.WriteLine("Killed BSLIME/GSLIME");
                         Random random = new Random();
 
                         var r = random.Next(1, ItemID.Count);
@@ -119,8 +137,37 @@ namespace PluginTemplate
                         player[0].GiveItemCheck(r, EnglishLanguage.GetItemNameById(r), random.Next(1, 100), p);
                         e.Handled = true;
                     }
+
+                    if (npc.netID == NPCID.BabySlime)
+                    {
+                        Random random = new Random();
+
+                        var player = TSPlayer.FindByNameOrID(e.ignoreClient.ToString());
+                        var proj = Projectile.NewProjectile(Projectile.GetNoneSource(), new Vector2(npc.position.X, npc.position.Y), new Vector2(0, 2), ProjectileID.GrenadeIV, 150, 1);
+
+
+                        if (random.Next(0, 100) < 5)
+                        {
+                            Item item = TShock.Utils.GetItemById(279);
+                            int itemIndex = Item.NewItem(Projectile.GetNoneSource(), new Vector2(player[0].X, (int)player[0].Y), item.width, item.height, item.type, 64);
+
+                            Item targetItem = Main.item[itemIndex];
+                            targetItem.playerIndexTheItemIsReservedFor = player[0].Index;
+
+                            targetItem._nameOverride = "Crazy Knives";
+                            targetItem.damage = 100;
+                            targetItem.useTime = 5;
+                            player[0].SendData(PacketTypes.UpdateItemDrop, null, itemIndex);
+                            player[0].SendData(PacketTypes.ItemOwner, null, itemIndex);
+                            player[0].SendData(PacketTypes.TweakItem, null, itemIndex, 255, 63);
+
+                        }
+                        e.Handled = true;
+                    }
                 }
             }
+
+            
         }
 
         void strikeNPC(object sender, GetDataHandlers.NPCStrikeEventArgs args)
@@ -132,7 +179,7 @@ namespace PluginTemplate
 
         void onTileEdit(object sender, GetDataHandlers.TileEditEventArgs tile)
         {
-            if(tile.Action == GetDataHandlers.EditAction.KillTile)
+            if(tile.Action == GetDataHandlers.EditAction.KillTile && tile.EditData == 0)
             {
                 //Copper behaviour
                 if (Main.tile[tile.X, tile.Y].type == TileID.Copper)
@@ -161,43 +208,48 @@ namespace PluginTemplate
                     
                     tile.Player.GiveItem(ItemID.Wood, 250);
                     tile.Player.GiveItem(ItemID.Acorn, 25);
-                    if (r.Next(1, 25) == 25)
+
+                    if (r.Next(1, 26) == 25)
                     {
                        tile.Player.GiveItem(ItemID.PearlwoodSword, 1, PrefixID.Legendary);
                         noFurtherdrops = true;
                     }
 
-                    if(r.Next(1, 5) == 5 && noFurtherdrops == false)
+                    if(r.Next(1, 6) == 5 && noFurtherdrops == false)
                     {
                         tile.Player.GiveItem(ItemID.AppleJuice, 1);
                         noFurtherdrops = true;
                     }
 
 
-                    if (r.Next(1, 5) == 5 && noFurtherdrops == false)
+                    if (r.Next(1, 6) == 5 && noFurtherdrops == false)
                     {
                         tile.Player.GiveItem(ItemID.Peach, 1);
                         noFurtherdrops = true;
                     }
 
-                    if (r.Next(1, 5) == 5 && noFurtherdrops == false)
+                    if (r.Next(1, 6) == 5 && noFurtherdrops == false)
                     {
                         tile.Player.GiveItem(ItemID.Grapes, 1);
                         noFurtherdrops = true;
                     }
 
-                    Main.tile[tile.X, tile.Y].active(false);
-                    Main.treeX[]
-                    tile.Player.SendTileSquareCentered(tile.Player.TileX, tile.Player.TileY, 32);
-                    tile.Handled = true;
+                        handleTree(tile.X, tile.Y, tile.Player);
+                        
+                    
+
+                        tile.Player.SendTileSquareCentered(tile.Player.TileX, tile.Player.TileY, 32);
+                        tile.Handled = true;
+                    
+
                 }
 
                 //Silver behaviour
                 if(Main.tile[tile.X, tile.Y].type == TileID.Silver){
                     tile.Player.GiveItem(ItemID.SilverBar, 20);
-                    int p = Projectile.NewProjectile(Projectile.GetNoneSource(), new Vector2(tile.Player.TPlayer.position.X, tile.Player.TPlayer.position.Y), new Vector2(0, 0), ProjectileID.BouncyBomb, 100, 10);
                     Main.tile[tile.X, tile.Y].active(false);
                     tile.Player.SendTileSquareCentered(tile.Player.TileX, tile.Player.TileY, 32);
+                    int p = Projectile.NewProjectile(Projectile.GetNoneSource(), new Vector2(tile.Player.X, tile.Player.Y), new Vector2(0, 0), ProjectileID.BombSkeletronPrime, 100, 10);
                     tile.Handled = true;
                 }
             }
@@ -205,8 +257,22 @@ namespace PluginTemplate
 
         }
 
+        void handleTree(int x, int y, TSPlayer Player)
+        {
+            WorldGen.KillTile(x, y);
+            if(Main.tile[x, y+1].type == TileID.Trees)
+            {
+                handleTree(x, y+1, Player);
+                Player.SendTileSquareCentered(Player.TileX, Player.TileY, 32);
+            }
+            else
+            {
+                Player.SendTileSquareCentered(Player.TileX, Player.TileY, 32);
 
-		void VoteCommand(CommandArgs args)
+            }
+        }
+
+        void VoteCommand(CommandArgs args)
         {
 			args.Player.SendMessage("Vote for our server on Terraria-servers.com! Fill in your name as it is in-game, after that, type /reward to receive your playtime!", Color.Aquamarine);
         }
@@ -263,6 +329,7 @@ namespace PluginTemplate
 				ServerApi.Hooks.GameInitialize.Deregister(this, onInitialize);
 				ServerApi.Hooks.ServerChat.Deregister(this, onChat);
 				ServerApi.Hooks.NetGreetPlayer.Deregister(this, onGreet);
+                ServerApi.Hooks.NetSendData.Deregister(this, NetHooks_SendData);
 				TShockAPI.Hooks.RegionHooks.RegionEntered -= onRegionEnter;
 				TShockAPI.Hooks.RegionHooks.RegionLeft -= onRegionLeave;
 
