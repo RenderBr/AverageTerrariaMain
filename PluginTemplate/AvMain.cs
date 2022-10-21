@@ -8,6 +8,7 @@ using Terraria.ID;
 using System.Timers;
 using Microsoft.Xna.Framework;
 using TShockAPI.Localization;
+using Terraria.Localization;
 
 namespace PluginTemplate
 {
@@ -63,6 +64,7 @@ namespace PluginTemplate
 			ServerApi.Hooks.NetGreetPlayer.Register(this, onGreet);
             ServerApi.Hooks.NetSendData.Register(this, NetHooks_SendData);
             ServerApi.Hooks.NpcSpawn.Register(this, onBossSpawn);
+            ServerApi.Hooks.NpcKilled.Register(this, onBossDeath);
             TShockAPI.GetDataHandlers.TileEdit += onTileEdit;
             TShockAPI.GetDataHandlers.NPCStrike += strikeNPC;
 			TShockAPI.Hooks.RegionHooks.RegionEntered += onRegionEnter;
@@ -76,6 +78,15 @@ namespace PluginTemplate
 			TSPlayer.All.SendMessage("[" + Config.serverName + "] " + Config.broadcastMessages[rnd.Next(0, Config.broadcastMessages.Count)], Microsoft.Xna.Framework.Color.Aquamarine);
         }
 
+        void onBossDeath(NpcKilledEventArgs args)
+        {
+            NPC npc = Main.npc[args.npc.whoAmI];
+
+            if (npc.netID == NPCID.EyeofCthulhu) { 
+
+            }
+        }
+
         void onBossSpawn(NpcSpawnEventArgs args)
         {
             NPC npc = Main.npc[args.NpcId];
@@ -83,12 +94,17 @@ namespace PluginTemplate
             if(npc.netID == NPCID.EyeofCthulhu)
             {
                 
-                TSPlayer.All.SendMessage("A suspicious looking eye is upon us!", Color.Red);
-                npc.lifeMax = 3600;
-                npc.life = 3600;
+                TSPlayer.All.SendMessage("A suspicious eye is upon us!", Color.Red);
+                npc.lifeMax = 10000;
+                npc.life = 10000;
+                npc.height = 100;
+                npc.width = 100;
                 npc.GivenName = "Suspicious Eye";
-                npc.scale = 500;
-                TSPlayer.All.Sen(PacketTypes.Npc, "", args.NpcId);
+                NetMessage.SendData(23, -1, -1, (NetworkText) null, args.NpcId);
+                TSPlayer.Server.StrikeNPC(args.NpcId, 1, 0, 0);
+                TSPlayer.All.SendData(PacketTypes.NpcUpdate, "", args.NpcId);
+                TSPlayer.All.SendData(PacketTypes.UpdateNPCName, npc.GivenName);
+                //update on client side immediately
                 args.Handled = true;
             }
         }
