@@ -7,6 +7,8 @@ using TShockAPI;
 using Terraria.ID;
 using System.Timers;
 using Microsoft.Xna.Framework;
+using System.Text.RegularExpressions;
+using NCalc;
 
 namespace PluginTemplate
 {
@@ -20,10 +22,19 @@ namespace PluginTemplate
 
 		public Timer bcTimer;
 
-        /// <summary>
-        /// The name of the plugin.
-        /// </summary>
-        public override string Name => "Average's Terraria";
+		public Timer cgTimer;
+
+		public static chatGame cg = new chatGame();
+
+		public class chatGame
+        {
+			public bool Occuring = false;
+			public int answer = 0;
+        }
+		/// <summary>
+		/// The name of the plugin.
+		/// </summary>
+		public override string Name => "Average's Terraria";
 
         /// <summary>
         /// The version of the plugin in its current state.
@@ -63,12 +74,56 @@ namespace PluginTemplate
 			TShockAPI.Hooks.RegionHooks.RegionEntered += onRegionEnter;
 			TShockAPI.Hooks.RegionHooks.RegionLeft += onRegionLeave;
 			Console.WriteLine("Average Main LOADED");
+
         }
 
 		public void broadcastMessage(Object source, ElapsedEventArgs args)
         {
 			Random rnd = new Random();
 			TSPlayer.All.SendMessage("[" + Config.serverName + "] " + Config.broadcastMessages[rnd.Next(0, Config.broadcastMessages.Count)], Microsoft.Xna.Framework.Color.Aquamarine);
+			for (int i = 0; i < Main.maxItems; i++)
+			{
+
+				if (Main.item[i].active)
+				{
+					Main.item[i].active = false;
+					TSPlayer.All.SendData(PacketTypes.ItemDrop, "", i);
+				}
+			}
+
+			for (int i = 0; i < Main.maxProjectiles; i++)
+			{
+
+				if (Main.projectile[i].active)
+				{
+					Main.projectile[i].active = false;
+					Main.projectile[i].type = 0;
+					TSPlayer.All.SendData(PacketTypes.ProjectileNew, "", i);
+				}
+			}
+			TSPlayer.Server.SetTime(true, 0.0);
+		}
+
+		public void chatGames(Object source, ElapsedEventArgs args)
+        {
+			Random rand = new Random();
+			string Oper = null;
+
+            if (rand.Next(0, 2) == 1)
+            {
+				Oper = "-";
+            }
+            else
+            {
+				Oper = "+";
+            }
+
+			string mathProblem = rand.Next(1, 100) + Oper + rand.Next(1, 150);
+			int answer = (int)new Expression(mathProblem).Evaluate(); 
+
+			cg.Occuring = true;
+			cg.answer = answer;
+			TSPlayer.All.SendMessage("[Chat Games] Answer this math problem and win 25 minutes of rank playtime: " + mathProblem, Color.LightGreen);
         }
 
         void onInitialize(EventArgs e)
@@ -81,25 +136,43 @@ namespace PluginTemplate
 			Commands.ChatCommands.Add(new Command("av.pvp", tpToPvpCommand, "pvparena", "parena"));
 			Commands.ChatCommands.Add(new Command("av.boss", tpToPvpCommand, "bossarena", "arena", "barena"));
 			Commands.ChatCommands.Add(new Command("av.discord", discordInvite, "discord"));
-            Commands.ChatCommands.Add(new Command("av.reload", reloadCommand, "avreload"));
+            Commands.ChatCommands.Add(new Command("av.admin", reloadCommand, "avreload"));
 			Commands.ChatCommands.Add(new Command("av.stuck", stuckCommand, "stuck", "imstuck"));
 			Commands.ChatCommands.Add(new Command("av.vanish", vanishCommand, "vanish", "invis"));
 			Commands.ChatCommands.Add(new Command("av.stoprain", stopRainCommand, "stoprain", "sr"));
 			Commands.ChatCommands.Add(new Command("av.tpAverage", tpToAverage, "average", "av", "tpav"));
 			Commands.ChatCommands.Add(new Command("av.boss", killBosses, "killbosses", "kb"));
+			Commands.ChatCommands.Add(new Command("av.admin", triggerCg, "chatgame", "cg"));
+			cg.Occuring = false;
+			cg.answer = 0;
 
 
-
+			//Broadcasts
 			bcTimer = new Timer(Config.bcInterval*1000*60); //minutes
 
 			bcTimer.Elapsed += broadcastMessage;
 			bcTimer.AutoReset = true;
 			bcTimer.Enabled = true;
+
+			//Chat games
+			cgTimer = new Timer(Config.cgInterval * 1000 * 60); //minutes
+
+			cgTimer.Elapsed += chatGames;
+			cgTimer.AutoReset = true;
+			cgTimer.Enabled = true;
 		}
 
 		void onGreet(GreetPlayerEventArgs args)
         {
 			var ply = TShock.Players[args.Who];
+			Random rand = new Random();
+
+			if(Regex.IsMatch(ply.Name, "[^\x00-\x80]+")){
+				ply.TPlayer.name = "NonEnglishUser" + rand.Next(0, 100000);
+				NetMessage.SendData((int)PacketTypes.PlayerInfo, -1, -1, new Terraria.Localization.NetworkText(ply.TPlayer.name, Terraria.Localization.NetworkText.Mode.Literal), args.Who, 0, 0, 0, 0);
+				ply.SendMessage("Your name has been temporarily changed to " + ply.TPlayer.name + " because it had non-English characters! Change it to something else with /nick (new name)!", Color.Gold);
+			}		
+
 
 			Players.Add(new AvPlayer(ply.Name));
         }
@@ -136,6 +209,11 @@ namespace PluginTemplate
             {
 				args.Player.SendInfoMessage("It's not currently raining?");
             }
+        }
+
+		void triggerCg(CommandArgs arsg)
+        {
+			chatGames(null, null);
         }
 
 		void VoteCommand(CommandArgs args)
@@ -237,9 +315,30 @@ namespace PluginTemplate
 
 		void onChat(ServerChatEventArgs args)
         {
+			var player = TSPlayer.FindByNameOrID(args.Who.ToString());
 
-            
-        }
+			if(cg.Occuring == true)
+            {
+				if(args.Text == cg.answer.ToString())
+                {
+					TimeRanks.TimeRanks.Players.GetByUsername(player[0].Name).totaltime += 1500;
+					TSPlayer.All.SendMessage("[Chat Games] " + player[0].Name + " won the chat game (answer: " + cg.answer.ToString() + ") and has won 25 minutes of rank playtime! Whoot!", Color.Gold);
+					cg.Occuring = false;
+					cg.answer = 0;
+                }
+            }
+			Console.WriteLine(args.Text);
+			if (args.Text.Contains("nigger") || args.Text.Contains("nigga") || args.Text.Contains("chink") || args.Text.Contains("fag") || args.Text.Contains("faggot") || args.Text.Contains("suicide"))
+            {
+				args.Handled = true;
+				player[0].Kick("Prohibited language used. This may be offensive to others!", true, false, "Average");
+            }
+			if (Regex.IsMatch(args.Text, "[^\x00-\x80]+"))
+            {
+				args.Handled = true;
+				player[0].SendMessage("Please only use English characters! If you would like to speak to others in another language, do so with Discord/other private messaging! Sorry for the inconvenience.", Color.Beige);
+			}
+		}
 
         void infoCommand(CommandArgs args)
         {

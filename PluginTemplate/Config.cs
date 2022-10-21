@@ -22,6 +22,7 @@ namespace AverageTerrariaMain
 		public string serverName { get; set; } = "Average's Terraria";
 		public List<string> broadcastMessages { get; set; } = new List<string> {};
 
+		public int cgInterval { get; set; } = 3;
 		public int bcInterval { get; set; } = 2;
 
 		public string spawnName { get; set; } = "spawn";
