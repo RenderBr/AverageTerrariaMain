@@ -46,6 +46,9 @@ namespace AverageTerrariaMain
         public bool Online { get { return tsPlayer != null; } }
         public readonly string name;
         public bool isVanished = false;
+        public bool isBountied = false;
+        public int bountyPrice = 0;
+        public TSPlayer bountiedBy;
         public string Group
         {
             get { return !Online ? TShock.UserAccounts.GetUserAccountByName(name).Group : tsPlayer.Group.Name; }
