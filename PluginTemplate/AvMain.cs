@@ -1,4 +1,5 @@
 ﻿using AverageTerrariaMain;
+using AverageTerrariaSurvival;
 using System;
 using Terraria.ObjectData;
 using Terraria;
@@ -9,6 +10,14 @@ using System.Timers;
 using Microsoft.Xna.Framework;
 using System.Text.RegularExpressions;
 using NCalc;
+using TShockAPI.Localization;
+using Terraria.Localization;
+using System.Collections.Generic;
+using Mono.Data.Sqlite;
+using System.IO;
+using System.Text;
+using System.Data;
+using System.Linq.Expressions;
 
 namespace PluginTemplate
 {
@@ -21,6 +30,8 @@ namespace PluginTemplate
 		internal static readonly AvPlayers Players = new AvPlayers();
 
 		public Timer bcTimer;
+        private IDbConnection _db;
+        public static Database dbManager;
 
 		public Timer cgTimer;
 
@@ -75,7 +86,17 @@ namespace PluginTemplate
 			TShockAPI.Hooks.RegionHooks.RegionEntered += onRegionEnter;
 			TShockAPI.Hooks.RegionHooks.RegionLeft += onRegionLeave;
 			Console.WriteLine("Average Main LOADED");
+      switch (TShock.Config.Settings.StorageType.ToLower())
+      {
+          case "sqlite":
+              _db = new SqliteConnection(string.Format("uri=file://{0},Version=3",
+                  Path.Combine(TShock.SavePath, "AvSurvival.sqlite")));
+              break;
+          default:
+              throw new Exception("Invalid storage type.");
+      }
 
+      dbManager = new Database(_db);
         }
 
 		public void broadcastMessage(Object source, ElapsedEventArgs args)
@@ -234,7 +255,7 @@ namespace PluginTemplate
 				ply.TPlayer.name = "NonEnglishUser" + rand.Next(0, 100000);
 				NetMessage.SendData((int)PacketTypes.PlayerInfo, -1, -1, new Terraria.Localization.NetworkText(ply.TPlayer.name, Terraria.Localization.NetworkText.Mode.Literal), args.Who, 0, 0, 0, 0);
 				ply.SendMessage("Your name has been temporarily changed to " + ply.TPlayer.name + " because it had non-English characters! Change it to something else with /nick (new name)!", Color.Gold);
-			}		
+			}
 
 
 			Players.Add(new AvPlayer(ply.Name));
@@ -362,8 +383,8 @@ namespace PluginTemplate
    //         {
 			//	TSPlayer.All.SendMessage(player.name + " has left.", Microsoft.Xna.Framework.Color.LightYellow);
 			//	player.tsPlayer.SetBuff(BuffID.Invisibility, 360000);
-				
-				
+
+
    //         }
         }
 
@@ -645,7 +666,7 @@ namespace PluginTemplate
 
             args.Player.SendSuccessMessage("Average's Terraria plugin config has been reloaded!");
         }
-        
+
         /// <summary>
         /// Performs plugin cleanup logic
         /// Remove your hooks and perform general cleanup here
@@ -665,6 +686,6 @@ namespace PluginTemplate
         }
 
 
-        
+
     }
 }
