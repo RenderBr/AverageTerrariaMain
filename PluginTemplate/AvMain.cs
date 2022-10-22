@@ -30,6 +30,7 @@ namespace PluginTemplate
         {
 			public bool Occuring = false;
 			public int answer = 0;
+			public string wordAnswer = "";
         }
 		/// <summary>
 		/// The name of the plugin.
@@ -108,25 +109,87 @@ namespace PluginTemplate
         {
 			Random rand = new Random();
 			string Oper = null;
+			int gamemode = rand.Next(0, 5);
+			string mathProblem = null;
+			string wordProblem = null;
+			int answer = 0;
 
-            if (rand.Next(0, 2) == 1)
+			switch (gamemode)
             {
-				Oper = "-";
-            }
-            else
-            {
-				Oper = "+";
-            }
+				case 1:
+					Oper = "-";
+					mathProblem = rand.Next(1, 100) + Oper + rand.Next(1, 150);
+					 answer = (int)new Expression(mathProblem).Evaluate();
+					cg.answer = answer;
 
-			string mathProblem = rand.Next(1, 100) + Oper + rand.Next(1, 150);
-			int answer = (int)new Expression(mathProblem).Evaluate(); 
+					break;
+				case 2:
+					Oper = "+";
+					mathProblem = rand.Next(1, 100) + Oper + rand.Next(1, 150);
+					 answer = (int)new Expression(mathProblem).Evaluate();
+					cg.answer = answer;
 
+					break;
+				case 3:
+					Oper = "*";
+					mathProblem = rand.Next(1, 12) + Oper + rand.Next(1, 12);
+					answer = (int)new Expression(mathProblem).Evaluate();
+					cg.answer = answer;
+					break;
+				case 4:
+					wordProblem = "true";
+					break;
+				default:
+					Oper= "+";
+					mathProblem = rand.Next(1, 100) + Oper + rand.Next(1, 150);
+					answer = (int)new Expression(mathProblem).Evaluate();
+					cg.answer = answer;
+					break;
+			}
 			cg.Occuring = true;
-			cg.answer = answer;
-			TSPlayer.All.SendMessage("[Chat Games] Answer this math problem and win 25 minutes of rank playtime: " + mathProblem, Color.LightGreen);
+
+
+			if (wordProblem != null)
+            {
+				var problem = rand.Next(0, WordList.list.Length);
+				wordProblem = WordList.list[problem];
+				cg.wordAnswer = wordProblem;
+				TSPlayer.All.SendMessage("[Chat Games] Unscramble this word problem and win 25 minutes of rank playtime: " + ScrambleWord(wordProblem), Color.LightGreen);
+
+			}
+			else
+            {
+				TSPlayer.All.SendMessage("[Chat Games] Answer this math problem and win 25 minutes of rank playtime: " + mathProblem, Color.LightGreen);
+			}
+
+
         }
 
-        void onInitialize(EventArgs e)
+		public string ScrambleWord(string word)
+		{
+			char[] chars = new char[word.Length];
+			Random rand = new Random(10000);
+
+			int index = 0;
+
+			while (word.Length > 0)
+			{
+				// Get a random number between 0 and the length of the word.
+				int next = rand.Next(0, word.Length - 1);
+
+				// Take the character from the random position and add to our char array.
+				chars[index] = word[next];
+
+				// Remove the character from the word.
+				word = word.Substring(0, next) + word.Substring(next + 1);
+
+				++index;
+			}
+
+			return new String(chars);
+		}
+
+		void onInitialize(EventArgs e)
         {
             Config = Config.Read();
             Commands.ChatCommands.Add(new Command("av.info", infoCommand, "info"));
@@ -326,6 +389,14 @@ namespace PluginTemplate
 					cg.Occuring = false;
 					cg.answer = 0;
                 }
+				if(args.Text == cg.wordAnswer.ToString())
+                {
+					TimeRanks.TimeRanks.Players.GetByUsername(player[0].Name).totaltime += 1500;
+					TSPlayer.All.SendMessage("[Chat Games] " + player[0].Name + " won the chat game (answer: " + cg.wordAnswer.ToString() + ") and has won 25 minutes of rank playtime! Whoot!", Color.Gold);
+					cg.Occuring = false;
+					cg.wordAnswer = null;
+					cg.answer = 0;
+				}
             }
 			Console.WriteLine(args.Text);
 			if (args.Text.Contains("nigger") || args.Text.Contains("nigga") || args.Text.Contains("chink") || args.Text.Contains("fag") || args.Text.Contains("faggot") || args.Text.Contains("suicide"))

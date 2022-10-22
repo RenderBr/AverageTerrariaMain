@@ -72,6 +72,7 @@
     <Compile Include="Config.cs" />
     <Compile Include="AvMain.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="WordList.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
