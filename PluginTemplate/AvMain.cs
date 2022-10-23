@@ -76,7 +76,7 @@ namespace PluginTemplate
             ServerApi.Hooks.NetSendData.Register(this, NetHooks_SendData);
             ServerApi.Hooks.NpcSpawn.Register(this, onBossSpawn);
             ServerApi.Hooks.NpcKilled.Register(this, onBossDeath);
-            TShockAPI.GetDataHandlers.PlayerDamage += onPlayerDeath;
+            TShockAPI.GetDataHandlers.KillMe += KillMeEvent;
             TShockAPI.GetDataHandlers.TileEdit += onTileEdit;
             TShockAPI.GetDataHandlers.NPCStrike += strikeNPC;
 			TShockAPI.Hooks.RegionHooks.RegionEntered += onRegionEnter;
@@ -96,6 +96,26 @@ namespace PluginTemplate
             DonatedItems items = new DonatedItems();
             
             dbManager = new Database(_db);
+        }
+
+        public void KillMeEvent(Object sender, GetDataHandlers.KillMeEventArgs args)
+        {
+            short damage = args.Damage;
+            short id = args.PlayerId;
+            var deathReason = args.PlayerDeathReason;
+            TSPlayer enemyPlayer = TShock.Players[deathReason._sourcePlayerIndex];
+
+            if(enemyPlayer == null)
+            {
+                return;
+            }
+
+            if (Players.GetByUsername(args.Player.Name).isBountied == true)
+            {
+                TimeRanks.TimeRanks.Players.GetByUsername(enemyPlayer.Name).totalCurrency += Players.GetByUsername(args.Player.Name).bountyPrice;
+                Players.GetByUsername(args.Player.Name).isBountied = false;
+                TSPlayer.All.SendMessage(enemyPlayer.Name + " has claimed the bounty on " + args.Player.Name + " and won " + Players.GetByUsername(args.Player.Name).bountyPrice + " dollas!", Color.IndianRed);
+            }
         }
 
 		public void broadcastMessage(Object source, ElapsedEventArgs args)
@@ -247,19 +267,6 @@ namespace PluginTemplate
             {
                 args.Player.SendMessage(boss.Key, boss.Value);
             }
-        }
-
-            void onPlayerDeath(object sender, GetDataHandlers.PlayerDamageEventArgs args)
-        {
-            TSPlayer player = TSPlayer.FindByNameOrID(args.PlayerDeathReason._sourcePlayerIndex.ToString())[0];
-
-            if(Players.GetByUsername(player.Name).isBountied == true && Main.player[player.Index].statLife <= 0)
-            {
-                TimeRanks.TimeRanks.Players.GetByUsername(player.Name).totalCurrency += Players.GetByUsername(player.Name).bountyPrice;
-                Players.GetByUsername(player.Name).isBountied = false;
-                TSPlayer.All.SendMessage(player.Name + " has claimed the bounty on " + args.Player.Name + " and won " + Players.GetByUsername(player.Name).bountyPrice + " dollas!", Color.IndianRed);
-            }
-            
         }
 
         private List<int> ItemList
