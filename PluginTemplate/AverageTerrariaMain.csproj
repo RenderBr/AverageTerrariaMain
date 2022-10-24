@@ -1,88 +1,57 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{DCA3A85E-22A6-48E2-998D-343C2BE8402F}</ProjectGuid>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>AverageTerrariaMain</RootNamespace>
-    <AssemblyName>AverageTerrariaMain</AssemblyName>
-    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>x86</PlatformTarget>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
     <OutputPath>..\Debug\Debug\ServerPlugins\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <PlatformTarget>x86</PlatformTarget>
+    <OutputPath>..\Debug\Debug\ServerPlugins\</OutputPath>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject />
+    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.2-beta2" />
+    <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
+    <PackageReference Include="Microsoft.DotNet.UpgradeAssistant.Extensions.Default.Analyzers" Version="0.4.346202">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="ncalc" Version="1.3.8" />
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="EssentialsPlus">
-      <HintPath>..\..\EssentialsPlus\EssentialsPlus\bin\Debug\EssentialsPlus.dll</HintPath>
+      <HintPath>J:\Downloads\TShock-Beta-win-x64-Release-4\ServerPlugins\EssentialsPlus.dll</HintPath>
     </Reference>
-    <Reference Include="NCalc, Version=1.3.8.0, Culture=neutral, PublicKeyToken=973cde3f1cafed03, processorArchitecture=MSIL">
-      <HintPath>..\packages\ncalc.1.3.8\lib\NCalc.dll</HintPath>
+    <Reference Include="ModFramework">
+      <HintPath>J:\Downloads\TShock-Beta-win-x64-Release-4\bin\ModFramework.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>J:\Downloads\TShock4.5.18_Terraria1.4.3.6(1)\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Mono.Data.Sqlite">
+      <HintPath>J:\Downloads\TShock-Beta-win-x64-Release-4\bin\Mono.Data.Sqlite.dll</HintPath>
     </Reference>
-    <Reference Include="OTAPI, Version=1.4.4.1, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>E:\Debug\Debug\OTAPI.dll</HintPath>
+    <Reference Include="MySql.Data">
+      <HintPath>J:\Downloads\TShock-Beta-win-x64-Release-4\bin\MySql.Data.dll</HintPath>
     </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
-    <Reference Include="TerrariaServerAPI">
-      <HintPath>E:\Debug\Debug\TerrariaServerAPI.exe</HintPath>
+    <Reference Include="OTAPI">
+      <HintPath>J:\Downloads\TShock-Beta-win-x64-Release-4\bin\OTAPI.dll</HintPath>
+    </Reference>
+    <Reference Include="TerrariaServer">
+      <HintPath>J:\Downloads\TShock-Beta-win-x64-Release-4\bin\TerrariaServer.dll</HintPath>
     </Reference>
     <Reference Include="TimeRanks">
-      <HintPath>..\..\TimeRanks\TimeRanks\obj\Debug\TimeRanks.dll</HintPath>
+      <HintPath>J:\Downloads\TShock-Beta-win-x64-Release-4\ServerPlugins\TimeRanks.dll</HintPath>
     </Reference>
-    <Reference Include="TShockAPI, Version=4.5.18.0, Culture=neutral, processorArchitecture=x86">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>E:\Debug\Debug\ServerPlugins\TShockAPI.dll</HintPath>
+    <Reference Include="TShockAPI">
+      <HintPath>J:\Downloads\TShock-Beta-win-x64-Release-4\ServerPlugins\TShockAPI.dll</HintPath>
     </Reference>
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="AvPlayers.cs" />
-    <Compile Include="Config.cs" />
-    <Compile Include="AvMain.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="WordList.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
 </Project>
