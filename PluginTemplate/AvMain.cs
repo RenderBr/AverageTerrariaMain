@@ -11,7 +11,7 @@ using Microsoft.Xna.Framework;
 using TShockAPI.Localization;
 using Terraria.Localization;
 using System.Collections.Generic;
-using Mono.Data.Sqlite;
+using Microsoft.Data.Sqlite;
 using System.IO;
 using System.Text;
 using System.Data;
@@ -86,7 +86,7 @@ namespace PluginTemplate
             switch (TShock.Config.Settings.StorageType.ToLower())
             {
                 case "sqlite":
-                    _db = new SqliteConnection(string.Format("uri=file://{0},Version=3",
+                    _db = new SqliteConnection(string.Format("Data Source={0}",
                         Path.Combine(TShock.SavePath, "AvSurvival.sqlite")));
                     break;
                 default:
@@ -105,7 +105,7 @@ namespace PluginTemplate
             var deathReason = args.PlayerDeathReason;
             TSPlayer enemyPlayer = TShock.Players[deathReason._sourcePlayerIndex];
 
-            if(enemyPlayer == null)
+            if (enemyPlayer == null)
             {
                 return;
             }
@@ -118,7 +118,7 @@ namespace PluginTemplate
             }
         }
 
-		public void broadcastMessage(Object source, ElapsedEventArgs args)
+        public void broadcastMessage(Object source, ElapsedEventArgs args)
         {
 			Random rnd = new Random();
 			TSPlayer.All.SendMessage("[" + Config.serverName + "] " + Config.broadcastMessages[rnd.Next(0, Config.broadcastMessages.Count)], Microsoft.Xna.Framework.Color.Aquamarine);
@@ -614,11 +614,11 @@ namespace PluginTemplate
 
         void NetHooks_SendData(SendDataEventArgs e)
         {
-            if(e.MsgId == PacketTypes.NpcStrike)
+            if (e.MsgId == PacketTypes.NpcStrike)
             {
                 NPC npc = Main.npc[e.number];
                 Console.WriteLine("Net ID: " + npc.netID + ", e.Num: " + e.number + ", NPC.Type: " + npc.type);
-                if(npc.life <= 0)
+                if (npc.life <= 0)
                 {
                     // BLUE OR GREEN SLIME
                     if (npc.netID == NPCID.BlueSlime || npc.netID == NPCID.GreenSlime)
@@ -635,7 +635,7 @@ namespace PluginTemplate
                     }
 
                     //Demon eye
-                    if(npc.netID == NPCID.DemonEye)
+                    if (npc.netID == NPCID.DemonEye)
                     {
                         var item = ItemID.Lens;
 
@@ -646,12 +646,12 @@ namespace PluginTemplate
                     }
 
                     //Zombie
-                    if(npc.netID == NPCID.Zombie)
+                    if (npc.netID == NPCID.Zombie)
                     {
                         var player = TSPlayer.FindByNameOrID(e.ignoreClient.ToString());
 
                         var proj = Projectile.NewProjectile(Projectile.GetNoneSource(), new Vector2(npc.position.X, npc.position.Y), new Vector2(0, 2), ProjectileID.BouncyBomb, 150, 1);
-                        e.Handled=true;
+                        e.Handled = true;
                     }
 
                     //LavaSlime
@@ -662,7 +662,8 @@ namespace PluginTemplate
                         var r = random.Next(0, 5);
                         var p = random.Next(1, PrefixID.Count);
 
-                        switch(r) {
+                        switch (r)
+                        {
                             case 1:
                                 r = ItemID.LavaBomb; break;
                             case 2:
@@ -672,7 +673,7 @@ namespace PluginTemplate
                             case 4:
                                 r = ItemID.LavaWaders; break;
                         }
-                                
+
 
                         var player = TSPlayer.FindByNameOrID(e.ignoreClient.ToString());
 
@@ -710,7 +711,7 @@ namespace PluginTemplate
                 }
             }
 
-            
+
         }
 
         void strikeNPC(object sender, GetDataHandlers.NPCStrikeEventArgs args)
