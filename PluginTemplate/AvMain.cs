@@ -399,7 +399,14 @@ namespace PluginTemplate
 				}
             }
 			Console.WriteLine(args.Text);
-			if (args.Text.Contains("nigger") || args.Text.Contains("nigga") || args.Text.Contains("chink") || args.Text.Contains("fag") || args.Text.Contains("faggot") || args.Text.Contains("suicide"))
+
+			if(args.Text.Contains("chest") && args.Text.Contains("open"))
+            {
+				args.Handled = true;
+				player[0].SendMessage("Chests can not be open on mobile currently! We are looking into a fix for this. In the meantime use /item <itemname>.", Color.LightGreen);
+            }
+
+			if (args.Text.Contains("nigger") || args.Text.Contains("mong") || args.Text.Contains("nigga") || args.Text.Contains("chink") || args.Text.Contains("fag") || args.Text.Contains("faggot") || args.Text.Contains("suicide"))
             {
 				args.Handled = true;
 				player[0].Kick("Prohibited language used. This may be offensive to others!", true, false, "Average");
@@ -467,13 +474,6 @@ namespace PluginTemplate
 							npc.SetDefaults(370);
 							TSPlayer.Server.SpawnNPC(npc.type, npc.FullName, amount, args.Player.TileX, args.Player.TileY);
 							spawnName = "Duke Fishron";
-							break;
-						case "eater":
-						case "eater of worlds":
-						case "eow":
-							npc.SetDefaults(13);
-							TSPlayer.Server.SpawnNPC(npc.type, npc.FullName, amount, args.Player.TileX, args.Player.TileY);
-							spawnName = "The Eater of Worlds";
 							break;
 						case "eye":
 						case "eye of cthulhu":
