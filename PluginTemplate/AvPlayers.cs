@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TShockAPI;
 using Terraria;
+using System.Timers;
 
 namespace AverageTerrariaMain
 {
@@ -49,6 +50,7 @@ namespace AverageTerrariaMain
         public bool isBountied = false;
         public int bountyPrice = 0;
         public TSPlayer bountiedBy;
+        public Timer donateBeg;
         public string Group
         {
             get { return !Online ? TShock.UserAccounts.GetUserAccountByName(name).Group : tsPlayer.Group.Name; }

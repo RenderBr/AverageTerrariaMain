@@ -500,6 +500,15 @@ namespace PluginTemplate
         }
         void Donate(CommandArgs args)
         {
+            var avp = Players.GetByUsername(args.Player.Name);
+
+            if (avp.donateBeg.Enabled == true)
+            {
+                args.Player.SendMessage("You must wait to use this command again!", Color.IndianRed);
+                return;
+            }
+
+            Players.GetByUsername(args.Player.Name).donateBeg.Start();
             Item item = args.Player.SelectedItem;
             if(item == null)
             {
@@ -540,6 +549,16 @@ namespace PluginTemplate
                 args.Player.SendMessage("There are currently no items in the donation pool! Use /donate to insert an item!", Color.IndianRed);
                 return;
             }
+
+            var avp = Players.GetByUsername(args.Player.Name);
+
+            if (avp.donateBeg.Enabled == true)
+            {
+                args.Player.SendMessage("You must wait to use this command again!", Color.IndianRed);
+                return;
+            }
+
+            Players.GetByUsername(args.Player.Name).donateBeg.Start();
 
             if (args.Player.InventorySlotAvailable)
             {
@@ -605,11 +624,21 @@ namespace PluginTemplate
 
         }
 
+        void noMoreCoolDown(Object obj, ElapsedEventArgs args)
+        {
+            
+        }
+
 		void onGreet(GreetPlayerEventArgs args)
         {
 			var ply = TShock.Players[args.Who];
 
 			Players.Add(new AvPlayer(ply.Name));
+            var player = Players.GetByUsername(ply.Name);
+
+            player.donateBeg = new Timer(2 * 1000 * 60); //minutes
+
+
         }
 
         void NetHooks_SendData(SendDataEventArgs e)
@@ -967,13 +996,22 @@ namespace PluginTemplate
 
         void onRegionEnter(TShockAPI.Hooks.RegionHooks.RegionEnteredEventArgs args)
         {
+            if(args.Region.Name == Config.spawnName)
+            {
+                args.Player.SendMessage("You have entered the safezone!", Color.LightGreen);
+                args.Player.SetPvP(false);
 
+            }
 
         }
 
 		void onRegionLeave(TShockAPI.Hooks.RegionHooks.RegionLeftEventArgs args)
 		{
-
+            if(args.Region.Name == Config.spawnName)
+            {
+                args.Player.SendMessage("You are no longer protected by the safezone!", Color.IndianRed);
+                args.Player.SetPvP(true);
+            }
 		}
 
 		void applyStaffCommand(CommandArgs args)

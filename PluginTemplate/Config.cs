@@ -78,7 +78,7 @@ namespace AverageTerrariaMain
 
 		public int bcInterval { get; set; } = 2;
 
-		public string spawnName { get; set; } = "spawn";
+		public string spawnName { get; set; } = "diemob";
 
 		public static Config Read()
 		{
