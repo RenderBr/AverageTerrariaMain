@@ -614,102 +614,163 @@ namespace PluginTemplate
 
         void NetHooks_SendData(SendDataEventArgs e)
         {
-            if (e.MsgId == PacketTypes.NpcStrike)
-            {
-                NPC npc = Main.npc[e.number];
-                Console.WriteLine("Net ID: " + npc.netID + ", e.Num: " + e.number + ", NPC.Type: " + npc.type);
-                if (npc.life <= 0)
-                {
-                    // BLUE OR GREEN SLIME
-                    if (npc.netID == NPCID.BlueSlime || npc.netID == NPCID.GreenSlime)
-                    {
-                        Random random = new Random();
+            //if (e.MsgId == PacketTypes.NpcStrike)
+            //{
+            //    NPC npc = Main.npc[e.number];
+            //    Console.WriteLine("Net ID: " + npc.netID + ", e.Num: " + e.number + ", NPC.Type: " + npc.type);
+            //    if (npc.life <= 0)
+            //    {
+            //        // PINKY RANDOM ITEM DROPS
+            //        if (npc.netID == NPCID.Pinky)
+            //        {
+            //            Random random = new Random();
 
-                        var r = random.Next(1, ItemID.Count);
-                        var p = random.Next(1, PrefixID.Count);
+            //            var r = random.Next(1, ItemID.Count);
+            //            var p = random.Next(1, PrefixID.Count);
 
-                        var player = TSPlayer.FindByNameOrID(e.ignoreClient.ToString());
+            //            var player = TSPlayer.FindByNameOrID(e.ignoreClient.ToString());
 
-                        player[0].GiveItemCheck(r, EnglishLanguage.GetItemNameById(r), random.Next(1, 100), p);
-                        e.Handled = true;
-                    }
+            //            player[0].GiveItemCheck(r, EnglishLanguage.GetItemNameById(r), random.Next(1, 100), p);
+            //            e.Handled = true;
+            //        }
 
-                    //Demon eye
-                    if (npc.netID == NPCID.DemonEye)
-                    {
-                        var item = ItemID.Lens;
+            //        // RED SLIME DROPS
+            //        if (npc.netID == NPCID.RedSlime)
+            //        {
+            //            Random random = new Random();
 
-                        var player = TSPlayer.FindByNameOrID(e.ignoreClient.ToString());
+            //            short Iron = ItemID.IronBar;
+            //            short Tin = ItemID.TinBar;
+            //            short Copper = ItemID.CopperBar;
+            //            short Lead = ItemID.LeadBar;
+            //            short Silver = ItemID.SilverBar;
+            //            short Tungsten = ItemID.TungstenBar;
+            //            short Gold = ItemID.GoldBar;
+            //            short Platinum = ItemID.PlatinumBar;
 
-                        player[0].GiveItemCheck(item, EnglishLanguage.GetItemNameById(item), 1);
-                        e.Handled = true;
-                    }
+            //            var r = random.Next(1, ItemID.Count);
+            //            var p = random.Next(1, PrefixID.Count);
 
-                    //Zombie
-                    if (npc.netID == NPCID.Zombie)
-                    {
-                        var player = TSPlayer.FindByNameOrID(e.ignoreClient.ToString());
+            //            var player = TSPlayer.FindByNameOrID(e.ignoreClient.ToString());
 
-                        var proj = Projectile.NewProjectile(Projectile.GetNoneSource(), new Vector2(npc.position.X, npc.position.Y), new Vector2(0, 2), ProjectileID.BouncyBomb, 150, 1);
-                        e.Handled = true;
-                    }
+            //            player[0].GiveItemCheck(r, EnglishLanguage.GetItemNameById(r), random.Next(1, 100), p);
+            //            e.Handled = true;
+            //        }
 
-                    //LavaSlime
-                    if (npc.netID == NPCID.LavaSlime)
-                    {
-                        Random random = new Random();
+            //        // BUNNY SLIME DROPS
+            //        if(npc.netID == NPCID.Bunny)
+            //        {
+            //            var player = TSPlayer.FindByNameOrID(e.ignoreClient.ToString());
 
-                        var r = random.Next(0, 5);
-                        var p = random.Next(1, PrefixID.Count);
+            //            if(player != null)
+            //            {
+            //                TSPlayer.All.SendMessage(player + " just killed a bunny! Seriously??", Color.Red);
+            //                var proj = Projectile.NewProjectile(Projectile.GetNoneSource(), new Vector2(npc.position.X, npc.position.Y), new Vector2(0, 2), ProjectileID.BouncyDynamite, 150, 1);
 
-                        switch (r)
-                        {
-                            case 1:
-                                r = ItemID.LavaBomb; break;
-                            case 2:
-                                r = ItemID.LavaSkull; break;
-                            case 3:
-                                r = ItemID.LavaCharm; break;
-                            case 4:
-                                r = ItemID.LavaWaders; break;
-                        }
+            //            }
+
+            //        }
+
+            //        // BLUE & GREEN SLIME DROPS
+            //        if (npc.netID == NPCID.BlueSlime || npc.netID == NPCID.GreenSlime)
+            //        {
+            //            Random random = new Random();
+
+            //            var r = random.Next(1, ItemID.Count);
+            //            var bomb = random.Next(0, 101);
+
+            //            if(bomb < 25)
+            //            {
+            //                //drop bomb
+            //                var proj = Projectile.NewProjectile(Projectile.GetNoneSource(), new Vector2(npc.position.X, npc.position.Y), new Vector2(0, 2), ProjectileID.BouncyBomb, 150, 1);
+            //            }
+            //            else
+            //            {
+            //                //don't drop bomb
+            //            }
+
+            //            var player = TSPlayer.FindByNameOrID(e.ignoreClient.ToString());
+
+            //            player[0].GiveItemCheck(ItemID.Gel, EnglishLanguage.GetItemNameById(ItemID.Gel), random.Next(1, 999), 0);
+            //            e.Handled = true;
+            //        }
+
+            //        //Demon eye
+            //        if (npc.netID == NPCID.DemonEye)
+            //        {
+            //            var item = ItemID.Lens;
+
+            //            var player = TSPlayer.FindByNameOrID(e.ignoreClient.ToString());
+
+            //            player[0].GiveItemCheck(item, EnglishLanguage.GetItemNameById(item), 1);
+            //            e.Handled = true;
+            //        }
+
+            //        //Zombie
+            //        if (npc.netID == NPCID.Zombie)
+            //        {
+            //            var player = TSPlayer.FindByNameOrID(e.ignoreClient.ToString());
+
+            //            var proj = Projectile.NewProjectile(Projectile.GetNoneSource(), new Vector2(npc.position.X, npc.position.Y), new Vector2(0, 2), ProjectileID.BouncyBomb, 150, 1);
+            //            e.Handled = true;
+            //        }
+
+            //        //LavaSlime
+            //        if (npc.netID == NPCID.LavaSlime)
+            //        {
+            //            Random random = new Random();
+
+            //            var r = random.Next(0, 5);
+            //            var p = random.Next(1, PrefixID.Count);
+
+            //            switch (r)
+            //            {
+            //                case 1:
+            //                    r = ItemID.LavaBomb; break;
+            //                case 2:
+            //                    r = ItemID.LavaSkull; break;
+            //                case 3:
+            //                    r = ItemID.LavaCharm; break;
+            //                case 4:
+            //                    r = ItemID.LavaWaders; break;
+            //            }
 
 
-                        var player = TSPlayer.FindByNameOrID(e.ignoreClient.ToString());
+            //            var player = TSPlayer.FindByNameOrID(e.ignoreClient.ToString());
 
-                        player[0].GiveItemCheck(r, EnglishLanguage.GetItemNameById(r), random.Next(1, 100), p);
-                        e.Handled = true;
-                    }
+            //            player[0].GiveItemCheck(r, EnglishLanguage.GetItemNameById(r), random.Next(1, 100), p);
+            //            e.Handled = true;
+            //        }
 
-                    //BABY SLIME
-                    if (npc.netID == NPCID.BabySlime)
-                    {
-                        Random random = new Random();
+            //        //BABY SLIME
+            //        if (npc.netID == NPCID.BabySlime)
+            //        {
+            //            Random random = new Random();
 
-                        var player = TSPlayer.FindByNameOrID(e.ignoreClient.ToString());
-                        var proj = Projectile.NewProjectile(Projectile.GetNoneSource(), new Vector2(npc.position.X, npc.position.Y), new Vector2(0, 2), ProjectileID.GrenadeIV, 150, 1);
+            //            var player = TSPlayer.FindByNameOrID(e.ignoreClient.ToString());
+            //            var proj = Projectile.NewProjectile(Projectile.GetNoneSource(), new Vector2(npc.position.X, npc.position.Y), new Vector2(0, 2), ProjectileID.GrenadeIV, 150, 1);
 
 
-                        if (random.Next(0, 100) < 5)
-                        {
-                            Item item = TShock.Utils.GetItemById(279);
-                            int itemIndex = Item.NewItem(Projectile.GetNoneSource(), new Vector2(player[0].X, (int)player[0].Y), item.width, item.height, item.type, 64);
+            //            if (random.Next(0, 100) < 5)
+            //            {
+            //                Item item = TShock.Utils.GetItemById(279);
+            //                int itemIndex = Item.NewItem(Projectile.GetNoneSource(), new Vector2(player[0].X, (int)player[0].Y), item.width, item.height, item.type, 64);
 
-                            Item targetItem = Main.item[itemIndex];
-                            targetItem.playerIndexTheItemIsReservedFor = player[0].Index;
+            //                Item targetItem = Main.item[itemIndex];
+            //                targetItem.playerIndexTheItemIsReservedFor = player[0].Index;
 
-                            targetItem._nameOverride = "Crazy Knives";
-                            targetItem.damage = 100;
-                            targetItem.useTime = 5;
-                            player[0].SendData(PacketTypes.UpdateItemDrop, null, itemIndex);
-                            player[0].SendData(PacketTypes.ItemOwner, null, itemIndex);
-                            player[0].SendData(PacketTypes.TweakItem, null, itemIndex, 255, 63);
+            //                targetItem._nameOverride = "Crazy Knives";
+            //                targetItem.damage = 100;
+            //                targetItem.useTime = 5;
+            //                player[0].SendData(PacketTypes.UpdateItemDrop, null, itemIndex);
+            //                player[0].SendData(PacketTypes.ItemOwner, null, itemIndex);
+            //                player[0].SendData(PacketTypes.TweakItem, null, itemIndex, 255, 63);
 
-                        }
-                        e.Handled = true;
-                    }
-                }
-            }
+            //            }
+            //            e.Handled = true;
+            //        }
+            //    }
+            //}
 
 
         }
@@ -736,22 +797,6 @@ namespace PluginTemplate
 
         void onTileEdit(object sender, GetDataHandlers.TileEditEventArgs tile)
         {
-            if(tile.Action == GetDataHandlers.EditAction.KillTile && Main.tile[tile.X, tile.Y].type == 21)
-            {
-                var chest = Main.chest[Chest.FindChest(tile.X, tile.Y)];
-
-                    foreach(Item item in chest.item)
-                    {
-                        if (tile.Player.InventorySlotAvailable == true)
-                        {
-                            tile.Player.GiveItem(item.netID, item.stack, item.prefix);
-                            item.active = false;
-                            item.UpdateItem(0);
-                            NetMessage.SendData((int)PacketTypes.ChestGetContents, -1, -1, null, item.netID);
-                        }
-                    }
-                
-            }
 
 
             if(tile.Action == GetDataHandlers.EditAction.KillTile && tile.EditData == 0)
