@@ -32,6 +32,8 @@ namespace PluginTemplate
         public static Database dbManager;
 
         public static DonatedItems _donatedItems = new DonatedItems();
+        public static Clans _clans = new Clans();
+
         /// <summary>
         /// The name of the plugin.
         /// </summary>
@@ -436,8 +438,8 @@ namespace PluginTemplate
             {
                 
                 TSPlayer.All.SendMessage("A suspicious eye is upon us!", Color.Red);
-                npc.lifeMax = 10000+(TShock.Players.Length*2000);
-                npc.life = 10000+(TShock.Players.Length * 2000);
+                npc.lifeMax = 10000+(TShock.Players.Length*1000);
+                npc.life = 10000+(TShock.Players.Length * 1000);
                 npc.height = 100;
                 npc.width = 100;
                 NetMessage.SendData(23, -1, -1, (NetworkText) null, args.NpcId);
@@ -494,7 +496,7 @@ namespace PluginTemplate
 			bcTimer.AutoReset = true;
 			bcTimer.Enabled = true;
 
-            dbManager.InitialSyncPlayers();
+            dbManager.InitialSync();
 
 
         }
@@ -987,6 +989,153 @@ namespace PluginTemplate
                 Player.SendTileSquareCentered(Player.TileX, Player.TileY, 32);
 
             }
+        }
+
+        void Clan(CommandArgs args)
+        {
+            if(args.Player.Account == null)
+            {
+                args.Player.SendMessage("You must be logged in to use this command!", Color.Red);
+                return;
+            }
+
+            var player = args.Player;
+            var subcommand = args.Parameters[0];
+
+            if (subcommand == null)
+            {
+                args.Player.SendMessage("You must enter a sub-command. Use /clan help to see a list of sub-commands.", Color.Red);
+                return;
+            }
+
+            switch (subcommand)
+            {
+                case "create": // /clan create clanName
+                    if(TimeRanks.TimeRanks.Players.GetByUsername(args.Player.Name).totalCurrency >= 1500)
+                    {
+                        TimeRanks.TimeRanks.Players.GetByUsername(args.Player.Name).totalCurrency -= 1500;
+                    }
+                    else
+                    {
+                        args.Player.SendMessage("You do not have the 1500 " + TimeRanks.TimeRanks.config.currencyNamePlural + " required to create a clan! Try again when you have enough.", Color.Red);
+                        return;
+                    }
+                    
+                    var clanName = args.Parameters[1];
+                    var clanMembers = new ClanMembers();
+                    clanMembers.members.Add(new ClanMember(clanName, args.Player.Name, 3, DateTime.Now)); // role 3 is owner
+                    var clan = new Clan(clanName, clanMembers, args.Player.Name);
+                    _clans.allClans.Add(clan);
+                    args.Player.SendMessage($"Your clan {clanName} has been created!", Color.LightGreen);
+                    args.Player.SendMessage($"-1500 {TimeRanks.TimeRanks.config.currencyNamePlural} for creating a clan!", Color.Red);
+                    dbManager.InsertClan(clan);
+                    return;
+                case "remove":
+                case "delete": // /clan delete
+
+                    //check if user has clan and is owner
+                    if (_clans.FindClan(Players.GetByUsername(args.Player.Name).clan).owner == args.Player.Name)
+                    {
+                        var tclan = _clans.FindClan(Players.GetByUsername(args.Player.Name).clan);
+                        TSPlayer.All.SendMessage($"{tclan} has been deleted!", Color.Red);
+
+                        dbManager.DeleteClan(tclan);
+                        _clans.allClans.Remove(tclan);
+                    }
+                    else
+                    {
+                        args.Player.SendMessage("You are not in a clan or do not own the clan you are currently in!", Color.Red);
+                        return;
+                    }
+                    args.Player.SendMessage("You are not in a clan or do not own the clan you are currently in!", Color.Red);
+                    return;
+                case "invite": // /clan invite <player>
+                    var invc = _clans.FindClan(args.Player.Name).name;
+                    var user = args.Player;
+                    var role = _clans.FindClan(args.Player.Name).members.FindMember(args.Player.Name).role;
+                    var invitedPlayer = args.Parameters[1];
+
+                    if (invc != null)
+                    {
+                        if(user.Account != null)
+                        {
+                            //0 = rookie
+                            //1 = member
+                            //2 = mod
+                            //3 = owner/manager
+                            if(role > 1)
+                            {
+                                if(Players.GetByUsername(invitedPlayer).clan != null)
+                                {
+                                    args.Player.SendMessage("This player is already in a clan!", Color.Red);
+                                    return;
+                                }
+
+                                Players.GetByUsername(invitedPlayer).invitedToClan = true;
+                                Players.GetByUsername(invitedPlayer).whichClanInvite = invc;
+                                args.Player.SendMessage($"You invited {invitedPlayer} to {invc}!", Color.LightGreen);
+                                TSPlayer.FindByNameOrID(invitedPlayer)[0].SendMessage($"You have been invited to {invc} by {invitedPlayer}! Use /clan (a)ccept/(d)eny!", Color.Gold);
+
+                            }
+                            else
+                            {
+                                args.Player.SendMessage("You are not permitted to invite users!", Color.Red);
+                            }
+                        }
+                        else
+                        {
+                            args.Player.SendMessage("You must be logged in to use this command!", Color.Red);
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        args.Player.SendMessage("You are not in a clan!", Color.Red);
+                        return;
+                    }
+                    args.Player.SendMessage("Something happened!", Color.Red);
+                    return;
+                case "a":
+                case "accept":
+                    var invitedToClan = Players.GetByUsername(args.Player.Name).whichClanInvite;
+                    if(Players.GetByUsername(args.Player.Name).invitedToClan == true)
+                    {
+                        var newMember = new ClanMember(invitedToClan, args.Player.Name, 0, DateTime.Now);
+                        _clans.FindClan(invitedToClan).members.members.Add(newMember);
+                        dbManager.InsertMember(newMember);
+                        TSPlayer.All.SendMessage($"{args.Player.Name} has joined {invitedToClan}!", Color.LightGreen);
+                        Players.GetByUsername(args.Player.Name).invitedToClan = false;
+                        Players.GetByUsername(args.Player.Name).whichClanInvite = "";
+                    }
+                    else
+                    {
+                        args.Player.SendMessage("You were not invited to a clan!", Color.Red);
+                        return;
+                    }
+                    args.Player.SendMessage("You were not invited to a clan!", Color.Red);
+                    return;
+                case "d":
+                case "deny":
+                    if (Players.GetByUsername(args.Player.Name).invitedToClan == true)
+                    {
+                        Players.GetByUsername(args.Player.Name).invitedToClan = false;
+                        Players.GetByUsername(args.Player.Name).whichClanInvite = "";
+                        args.Player.SendMessage("You have denied the invite request!", Color.Red);
+                    }
+                    else
+                    {
+                        args.Player.SendMessage("You were not invited to a clan!", Color.Red);
+                        return;
+                    }
+                    args.Player.SendMessage("You were not invited to a clan!", Color.Red);
+                    return;
+                default:
+                    args.Player.SendMessage("You must enter a valid sub-command. Use /clan help to see a list of sub-commands.", Color.Red);
+                    return;
+            }
+
+
+
         }
 
         void VoteCommand(CommandArgs args)

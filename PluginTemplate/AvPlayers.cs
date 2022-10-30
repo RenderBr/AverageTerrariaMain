@@ -51,6 +51,9 @@ namespace AverageTerrariaMain
         public int bountyPrice = 0;
         public TSPlayer bountiedBy;
         public Timer donateBeg;
+        public string clan;
+        public bool invitedToClan = false;
+        public string whichClanInvite;
         public string Group
         {
             get { return !Online ? TShock.UserAccounts.GetUserAccountByName(name).Group : tsPlayer.Group.Name; }
