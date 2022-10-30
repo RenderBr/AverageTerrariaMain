@@ -488,6 +488,10 @@ namespace PluginTemplate
             Commands.ChatCommands.Add(new Command("av.bounty", bossProgression, "bosses", "progression", "far"));
             Commands.ChatCommands.Add(new Command("av.chests", DoChests, "chests", "genChests"));
             Commands.ChatCommands.Add(new Command("av.donate", Donate, "donate", "ditem"));
+            Commands.ChatCommands.Add(new Command("clan.chat", ClanChat, "c", "ditem"));
+            Commands.ChatCommands.Add(new Command("clan.use", Clan, "clan"));
+
+
             Commands.ChatCommands.Add(new Command("av.receive", ReceiveDonation, "beg", "receive", "plz"));
 
             bcTimer = new Timer(Config.bcInterval*1000*60); //minutes
@@ -988,6 +992,35 @@ namespace PluginTemplate
             {
                 Player.SendTileSquareCentered(Player.TileX, Player.TileY, 32);
 
+            }
+        }
+
+        void ClanChat(CommandArgs args)
+        {
+            if(args.Player.Account == null)
+            {
+                args.Player.SendMessage("You must be logged in to use this command!", Color.Red);
+                return;
+            }
+
+            var message = args.Parameters[0];
+            if(message == null)
+            {
+                args.Player.SendMessage("You cannot send an empty message to clan chat!", Color.Red);
+                return;
+            }
+
+            var playersClan = Players.GetByUsername(args.Player.Name).clan;
+            var clanMembers = _clans.FindClan(playersClan).members.members;
+
+            foreach(ClanMember cm in clanMembers)
+            {
+                if(TSPlayer.FindByNameOrID(cm.playerName)[0].Active == false)
+                {
+                    continue;
+                }
+
+                TSPlayer.FindByNameOrID(cm.playerName)[0].SendMessage($"[{playersClan}] {args.Player.Name}: {message}", Color.LightGreen);
             }
         }
 
