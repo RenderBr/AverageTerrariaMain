@@ -4,7 +4,7 @@
 - This is the plugin base (the one that adds alot of special functionality) for our Survival server. At: t.averageterraria.lol:7778
 - Provides a lot, but probably not recommended for other servers. There is and will be NO DOCUMENTATION for this plugin, and some parts are not very self-explanatory. Either way, use at your own risk!
 
-**DEPENDENCY**: TimeRanks
+**DEPENDENCY**: [TimeRanks](https://github.com/RenderBr/TimeRanks)
 
 # What does this add to the game so far?
 
