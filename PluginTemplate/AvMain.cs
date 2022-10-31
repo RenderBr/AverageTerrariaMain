@@ -78,6 +78,7 @@ namespace PluginTemplate
             ServerApi.Hooks.NetSendData.Register(this, NetHooks_SendData);
             ServerApi.Hooks.NpcSpawn.Register(this, onBossSpawn);
             ServerApi.Hooks.NpcKilled.Register(this, onBossDeath);
+            TShockAPI.Hooks.PlayerHooks.PlayerPostLogin += PlayerLogin;
             TShockAPI.GetDataHandlers.KillMe += KillMeEvent;
             TShockAPI.GetDataHandlers.TileEdit += onTileEdit;
             TShockAPI.GetDataHandlers.NPCStrike += strikeNPC;
@@ -96,8 +97,32 @@ namespace PluginTemplate
             }
 
             DonatedItems items = new DonatedItems();
-            
+            _clans.allClans = new List<Clan>();
+
             dbManager = new Database(_db);
+        }
+
+        public void PlayerLogin(TShockAPI.Hooks.PlayerPostLoginEventArgs args)
+        {
+            var player = Players.GetByUsername(args.Player.Name);
+
+            var clanname = "";
+
+            if (player.clan == null)
+            {
+                foreach (Clan clan in _clans.allClans)
+                {
+                    if (clan.members.FindMember(player.name) != null)
+                    {
+                        clanname = clan.name; 
+                        Players.GetByUsername(player.name).clan = clanname;
+
+                        break;
+                    }
+                }
+
+                player.tsPlayer.SendMessage("You are still in " + clanname, Color.LightGoldenrodYellow);
+            }
         }
 
         public void KillMeEvent(Object sender, GetDataHandlers.KillMeEventArgs args)
@@ -429,6 +454,42 @@ namespace PluginTemplate
 			}
 
 		}
+        // /givecurrency <player> <quantity)
+        void adminGiveDollas(CommandArgs args)
+        {
+            if(args.Parameters.Count <= 0)
+            {
+                args.Player.SendErrorMessage("Invalid arguments! Use this as an example: /givecurrency <player> <quantity>");
+                return;
+            }
+
+            if (args.Parameters.Count == 1)
+            {
+                args.Player.SendErrorMessage($"Invalid arguments! Please enter a quantity: /givecurrency {args.Parameters[0]} <quantity>");
+                return;
+            }
+
+            var player = args.Parameters[0];
+            var quantity = args.Parameters[1];
+            var Nplayer = TimeRanks.TimeRanks.Players.GetByUsername(player);
+
+            if (Nplayer == null)
+            {
+                args.Player.SendErrorMessage("This player does not exist in the TimeRanks database!");
+                return;
+            }
+
+            if (int.Parse(quantity) == 0 || quantity == null)
+            {
+                args.Player.SendErrorMessage($"Please enter a quantity as the second parameter. Ex. /givecurrency {player} 1000");
+                return;
+            }
+
+            Nplayer.totalCurrency += int.Parse(quantity);
+            args.Player.SendMessage($"You have given {player} {quantity} {TimeRanks.TimeRanks.config.currencyNamePlural}!", Color.LightGreen);
+            TSPlayer.FindByNameOrID(player)[0].SendMessage($"You have been given {quantity} {TimeRanks.TimeRanks.config.currencyNamePlural} by {args.Player.Name}!", Color.LightGreen);
+
+        }
 
         void onBossSpawn(NpcSpawnEventArgs args)
         {
@@ -489,8 +550,10 @@ namespace PluginTemplate
             Commands.ChatCommands.Add(new Command("av.chests", DoChests, "chests", "genChests"));
             Commands.ChatCommands.Add(new Command("av.donate", Donate, "donate", "ditem"));
             Commands.ChatCommands.Add(new Command("clan.chat", ClanChat, "c", "ditem"));
+            Commands.ChatCommands.Add(new Command("clan.list", ClansList, "clist", "clans"));
             Commands.ChatCommands.Add(new Command("clan.use", Clan, "clan"));
 
+            Commands.ChatCommands.Add(new Command("av.admin", adminGiveDollas, "givecurrency", "gc", "givebal", "baladd"));
 
             Commands.ChatCommands.Add(new Command("av.receive", ReceiveDonation, "beg", "receive", "plz"));
 
@@ -548,6 +611,20 @@ namespace PluginTemplate
             dbManager.InsertItem(new DonatedItem(item.netID, item.stack, item.prefix));
         }
 
+        void ClansList(CommandArgs args)
+        {
+            foreach (Clan clan in _clans.allClans) {
+                string members = "";
+                foreach(ClanMember member in clan.members.members)
+                {
+                    members += member.memberName + ", ";
+                }
+
+                args.Player.SendMessage(clan.name + "(" + members + ")", Color.Red);
+
+            }
+
+        }
         void ReceiveDonation(CommandArgs args)
         {
             if(_donatedItems.donations.Count <= 0)
@@ -641,6 +718,7 @@ namespace PluginTemplate
 
 			Players.Add(new AvPlayer(ply.Name));
             var player = Players.GetByUsername(ply.Name);
+ 
 
             player.donateBeg = new Timer(2 * 1000 * 60); //minutes
 
@@ -1015,12 +1093,12 @@ namespace PluginTemplate
 
             foreach(ClanMember cm in clanMembers)
             {
-                if(TSPlayer.FindByNameOrID(cm.playerName)[0].Active == false)
+                if(TSPlayer.FindByNameOrID(cm.memberName)[0].Active == false)
                 {
                     continue;
                 }
 
-                TSPlayer.FindByNameOrID(cm.playerName)[0].SendMessage($"[{playersClan}] {args.Player.Name}: {message}", Color.LightGreen);
+                TSPlayer.FindByNameOrID(cm.memberName)[0].SendMessage($"[{playersClan}] {args.Player.Name}: {message}", Color.LightGreen);
             }
         }
 
@@ -1031,11 +1109,16 @@ namespace PluginTemplate
                 args.Player.SendMessage("You must be logged in to use this command!", Color.Red);
                 return;
             }
+            if(args.Parameters.Count <= 0)
+            {
+                args.Player.SendMessage("You must enter a sub-command. Use /clan help to see a list of sub-commands.", Color.Red);
+                return;
+            }
 
             var player = args.Player;
             var subcommand = args.Parameters[0];
 
-            if (subcommand == null)
+            if (subcommand == null || args.Parameters.Count <= 0)
             {
                 args.Player.SendMessage("You must enter a sub-command. Use /clan help to see a list of sub-commands.", Color.Red);
                 return;
@@ -1044,6 +1127,12 @@ namespace PluginTemplate
             switch (subcommand)
             {
                 case "create": // /clan create clanName
+
+                    if(args.Parameters.Count == 1)
+                    {
+                        args.Player.SendErrorMessage("Enter a clan name! Ex. /clan create TheBestClan");
+                        return;
+                    }
                     if(TimeRanks.TimeRanks.Players.GetByUsername(args.Player.Name).totalCurrency >= 1500)
                     {
                         TimeRanks.TimeRanks.Players.GetByUsername(args.Player.Name).totalCurrency -= 1500;
@@ -1053,27 +1142,46 @@ namespace PluginTemplate
                         args.Player.SendMessage("You do not have the 1500 " + TimeRanks.TimeRanks.config.currencyNamePlural + " required to create a clan! Try again when you have enough.", Color.Red);
                         return;
                     }
-                    
+
                     var clanName = args.Parameters[1];
-                    var clanMembers = new ClanMembers();
-                    clanMembers.members.Add(new ClanMember(clanName, args.Player.Name, 3, DateTime.Now)); // role 3 is owner
-                    var clan = new Clan(clanName, clanMembers, args.Player.Name);
+                    var tempMember = new ClanMember(clanName, args.Player.Name, 3, DateTime.Now);
+                    var clan = new Clan(_clans.allClans.Count+1, clanName, new ClanMembers(), player.Name);
+
+                    clan.members.members = new List<ClanMember>();
+                    
+                    clan.members.members.Add(tempMember);
+
                     _clans.allClans.Add(clan);
+
+                    dbManager.InsertMember(tempMember);
+
+                    dbManager.InsertClan(clan);
+
                     args.Player.SendMessage($"Your clan {clanName} has been created!", Color.LightGreen);
                     args.Player.SendMessage($"-1500 {TimeRanks.TimeRanks.config.currencyNamePlural} for creating a clan!", Color.Red);
-                    dbManager.InsertClan(clan);
+ 
                     return;
                 case "remove":
                 case "delete": // /clan delete
+                    args.Player.SendInfoMessage($"Pre");
+                    var DeletingPlayer = args.Player;
+                    var Dclan = _clans.FindClan(Players.GetByUsername(DeletingPlayer.Name).clan);
 
                     //check if user has clan and is owner
-                    if (_clans.FindClan(Players.GetByUsername(args.Player.Name).clan).owner == args.Player.Name)
+                    if (Dclan.owner == args.Player.Name)
                     {
+                        args.Player.SendInfoMessage($"Debug1");
                         var tclan = _clans.FindClan(Players.GetByUsername(args.Player.Name).clan);
                         TSPlayer.All.SendMessage($"{tclan} has been deleted!", Color.Red);
+                        args.Player.SendInfoMessage($"Debug2");
 
                         dbManager.DeleteClan(tclan);
+                        args.Player.SendInfoMessage($"Debug3");
+
                         _clans.allClans.Remove(tclan);
+                        args.Player.SendInfoMessage($"Debug4");
+
+
                     }
                     else
                     {
@@ -1167,8 +1275,8 @@ namespace PluginTemplate
                     return;
             }
 
-
-
+            args.Player.SendMessage("You must enter a sub-command. Use /clan help to see a list of sub-commands.", Color.Red);
+            return;
         }
 
         void VoteCommand(CommandArgs args)

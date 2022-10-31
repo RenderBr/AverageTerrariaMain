@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using MySql.Data.MySqlClient;
@@ -28,7 +29,6 @@ namespace AverageTerrariaSurvival
             var clans = new SqlTable("Clans",
                 new SqlColumn("Id", MySqlDbType.Int32) { Primary = true, AutoIncrement = true },
                 new SqlColumn("ClanName", MySqlDbType.String),
-                new SqlColumn("ClanMembers", MySqlDbType.JSON),
                 new SqlColumn("Owner", MySqlDbType.String)
                 );
             sqlCreator.EnsureTableStructure(clans);
@@ -52,17 +52,12 @@ namespace AverageTerrariaSurvival
 
         public bool InsertClan(Clan clan)
         {
-            return _db.Query("INSERT INTO Clans (ClanName, ClanMembers, Owner) VALUES (@0, @1, @2)", clan.name, JsonConvert.SerializeObject(clan.members), clan.owner) != 0;
+            return _db.Query("INSERT INTO Clans (ClanName, Owner) VALUES (@0, @1)", clan.name, clan.owner) != 0;
         }
 
         public bool InsertMember(ClanMember cm)
         {
-            return _db.Query("INSERT INTO ClanMembers (MemberName, Role, JoinDate) VALUES (@0, @1, @2)", cm.playerName, cm.role, cm.joined) != 0;
-        }
-
-        public bool UpdateClanMembers(ClanMembers members, int clanId)
-        {
-            return _db.Query($"UPDATE Clans SET ClanMembers = '{JsonConvert.SerializeObject(members)}' WHERE Id = {clanId} ") != 0;
+            return _db.Query("INSERT INTO ClanMembers (ClanName, MemberName, Role, JoinDate) VALUES (@3, @0, @1, @2)", cm.memberName, cm.role, cm.joined, cm.clanName) != 0;
         }
 
         public bool DeleteItem(DonatedItem item)
@@ -104,12 +99,10 @@ namespace AverageTerrariaSurvival
                 while (reader.Read())
                 {
                     var actualId = reader.Get<int>("Id");
-                    var name = reader.Get<string>("MemberName");
-                    var members = JsonConvert.DeserializeObject<ClanMembers>(reader.Get<string>("ClanMembers"));
+                    var name = reader.Get<string>("ClanName");
                     var owner = reader.Get<string>("Owner");
-
-
-                    PluginTemplate.AvMain._clans.allClans.Add(new Clan(actualId, name, members, owner));
+            
+                    PluginTemplate.AvMain._clans.allClans.Add(new Clan(actualId, name, new ClanMembers(), owner));
 
 
                 }
@@ -125,10 +118,12 @@ namespace AverageTerrariaSurvival
                     var role = reader.Get<int>("Role");
                     var joined = reader.Get<DateTime>("JoinDate");
 
-
+                    PluginTemplate.AvMain._clans.FindClan(clanName).members.members = new List<ClanMember>();
                     PluginTemplate.AvMain._clans.FindClan(clanName).members.members.Add(new ClanMember(actualId, clanName, memberName, role, joined));
-                    
-
+                    if(PluginTemplate.AvMain.Players.GetByUsername(memberName) != null)
+                    {
+                        PluginTemplate.AvMain.Players.GetByUsername(memberName).clan = clanName;
+                    }
                 }
             }
         }

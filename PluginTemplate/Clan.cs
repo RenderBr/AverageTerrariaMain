@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -33,19 +34,27 @@ namespace AverageTerrariaSurvival
 
     public class ClanMember
     {
+        [JsonProperty("id")]
+
         public int id { get; set; }
 
+        [JsonProperty("clanName")]
         public string clanName { get; set; }
-        public string playerName { get; set; }
+        
+        [JsonProperty("memberName")]
+        public string memberName { get; set; }
+
+        [JsonProperty("role")]
         public int role { get; set; }
 
+        [JsonProperty("joined")]
         public DateTime joined { get; set; }
 
         public ClanMember(int id, string cname, string pname, int role, DateTime joined)
         {
             this.id = id;
             this.clanName = cname;
-            this.playerName = pname;
+            this.memberName = pname;
             this.role = role;
             this.joined = joined;
         }
@@ -54,7 +63,7 @@ namespace AverageTerrariaSurvival
         public ClanMember(string cname, string pname, int role, DateTime joined)
         {
             this.clanName = cname;
-            this.playerName = pname;
+            this.memberName = pname;
             this.role = role;
             this.joined = joined;
         }
@@ -63,11 +72,12 @@ namespace AverageTerrariaSurvival
 
     public class ClanMembers
     {
+        [JsonProperty("members")]
         public List<ClanMember> members { get; set; }
 
         public ClanMember FindMember(string name)
         {
-            return members.Find(x => x.playerName == name);
+            return members.Find(x => x.memberName == name);
         }
     }
 
@@ -78,7 +88,7 @@ namespace AverageTerrariaSurvival
 
         public Clan FindClan(string name)
         {
-            Clan tempclan = allClans.Find(x => x.name == name);
+            Clan tempclan = allClans.FirstOrDefault(x => x.name == name);
 
             return tempclan;
         }
