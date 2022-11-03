@@ -27,7 +27,7 @@
       <HintPath>J:\Downloads\TShock-Beta-win-x64-Release-4\bin\TerrariaServer.dll</HintPath>
     </Reference>
     <Reference Include="TimeRanks">
-      <HintPath>..\..\TimeRanks\TimeRanks\bin\Release\netstandard2.0\TimeRanksSurvival.dll</HintPath>
+      <HintPath>..\..\TimeRanks\TimeRanks\obj\Release\netstandard2.0\TimeRanks.dll</HintPath>
     </Reference>
     <Reference Include="TShockAPI">
       <HintPath>J:\Downloads\TShock-Beta-win-x64-Release-4\ServerPlugins\TShockAPI.dll</HintPath>
@@ -38,7 +38,7 @@
     <PackageReference Include="Microsoft.Data.Sqlite" Version="7.0.0-rc.2.22472.11" />
     <PackageReference Include="MySql.Data" Version="8.0.31" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.2-beta2" />
-    <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
+    <PackageReference Include="System.Data.DataSetExtensions" Version="4.6.0-preview3.19128.7" />
     <PackageReference Include="Microsoft.DotNet.UpgradeAssistant.Extensions.Default.Analyzers" Version="0.4.346202">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
