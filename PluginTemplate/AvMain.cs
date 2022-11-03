@@ -104,25 +104,7 @@ namespace PluginTemplate
 
         public void PlayerLogin(TShockAPI.Hooks.PlayerPostLoginEventArgs args)
         {
-            var player = Players.GetByUsername(args.Player.Name);
 
-            var clanname = "";
-
-            if (player.clan == null)
-            {
-                foreach (Clan clan in _clans.allClans)
-                {
-                    if (clan.members.FindMember(player.name) != null)
-                    {
-                        clanname = clan.name; 
-                        Players.GetByUsername(player.name).clan = clanname;
-
-                        break;
-                    }
-                }
-
-                player.tsPlayer.SendMessage("You are still in " + clanname, Color.LightGoldenrodYellow);
-            }
         }
 
         public void KillMeEvent(Object sender, GetDataHandlers.KillMeEventArgs args)
@@ -718,7 +700,28 @@ namespace PluginTemplate
 
 			Players.Add(new AvPlayer(ply.Name));
             var player = Players.GetByUsername(ply.Name);
- 
+
+
+            var clanname = "";
+
+            if (player.tsPlayer.Account != null && player.clan == "")
+            {
+
+                foreach (Clan clan in _clans.allClans)
+                {
+                    if (clan.members.FindMember(player.name) != null)
+                    {
+                        clanname = clan.name;
+                        Players.GetByUsername(player.name).clan = clanname;
+
+                        break;
+                    }
+                }
+
+                player.tsPlayer.SendMessage("You are still in " + clanname, Color.LightGoldenrodYellow);
+
+            }
+
 
             player.donateBeg = new Timer(2 * 1000 * 60); //minutes
 
@@ -1163,24 +1166,19 @@ namespace PluginTemplate
                     return;
                 case "remove":
                 case "delete": // /clan delete
-                    args.Player.SendInfoMessage($"Pre");
                     var DeletingPlayer = args.Player;
                     var Dclan = _clans.FindClan(Players.GetByUsername(DeletingPlayer.Name).clan);
 
                     //check if user has clan and is owner
                     if (Dclan.owner == args.Player.Name)
                     {
-                        args.Player.SendInfoMessage($"Debug1");
                         var tclan = _clans.FindClan(Players.GetByUsername(args.Player.Name).clan);
-                        TSPlayer.All.SendMessage($"{tclan} has been deleted!", Color.Red);
-                        args.Player.SendInfoMessage($"Debug2");
 
                         dbManager.DeleteClan(tclan);
-                        args.Player.SendInfoMessage($"Debug3");
 
                         _clans.allClans.Remove(tclan);
-                        args.Player.SendInfoMessage($"Debug4");
-
+                        TSPlayer.All.SendMessage($"{tclan.name} has been deleted!", Color.Red);
+                        return;
 
                     }
                     else

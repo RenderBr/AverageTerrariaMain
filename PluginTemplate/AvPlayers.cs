@@ -63,6 +63,7 @@ namespace AverageTerrariaMain
         {
             this.name = name;
             this.isVanished = false;
+            this.clan = "";
         }
 
     }

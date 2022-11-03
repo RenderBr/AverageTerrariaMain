@@ -72,7 +72,7 @@ namespace AverageTerrariaSurvival
 
         public bool DeleteClan(Clan clan)
         {
-            return _db.Query("DELETE FROM clan WHERE Id = @0", clan.dbId) != 0;
+            return _db.Query("DELETE FROM Clans WHERE Id = @0", clan.dbId) != 0;
         }
 
         //not just for players anymore
