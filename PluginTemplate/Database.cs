@@ -72,6 +72,11 @@ namespace AverageTerrariaSurvival
 
         public bool DeleteClan(Clan clan)
         {
+            foreach(ClanMember member in clan.members.members)
+            {
+                _db.Query("DELETE FROM ClanMembers WHERE Id = @0", member.id);
+
+            }
             return _db.Query("DELETE FROM Clans WHERE Id = @0", clan.dbId) != 0;
         }
 
@@ -101,7 +106,8 @@ namespace AverageTerrariaSurvival
                     var actualId = reader.Get<int>("Id");
                     var name = reader.Get<string>("ClanName");
                     var owner = reader.Get<string>("Owner");
-            
+                    Console.WriteLine("A");
+
                     PluginTemplate.AvMain._clans.allClans.Add(new Clan(actualId, name, new ClanMembers(), owner));
 
 
@@ -118,9 +124,12 @@ namespace AverageTerrariaSurvival
                     var role = reader.Get<int>("Role");
                     var joined = reader.Get<DateTime>("JoinDate");
 
+
                     PluginTemplate.AvMain._clans.FindClan(clanName).members.members = new List<ClanMember>();
+
                     PluginTemplate.AvMain._clans.FindClan(clanName).members.members.Add(new ClanMember(actualId, clanName, memberName, role, joined));
-                    if(PluginTemplate.AvMain.Players.GetByUsername(memberName) != null)
+
+                    if (PluginTemplate.AvMain.Players.GetByUsername(memberName) != null)
                     {
                         PluginTemplate.AvMain.Players.GetByUsername(memberName).clan = clanName;
                     }

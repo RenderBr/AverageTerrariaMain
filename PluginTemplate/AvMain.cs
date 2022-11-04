@@ -595,16 +595,32 @@ namespace PluginTemplate
 
         void ClansList(CommandArgs args)
         {
+            var page = 1;
+            var i = 0;
+            if(_clans.allClans.Count == 0)
+            {
+                args.Player.SendMessage("There are no clans!", Color.LightCyan);
+                return;
+            }
+            if(args.Parameters.Count > 0)
+            {
+                page = int.Parse(args.Parameters[0]);
+            }
+            args.Player.SendMessage($"Clan List - Page {page}", Color.Gold);
+
             foreach (Clan clan in _clans.allClans) {
+
                 string members = "";
                 foreach(ClanMember member in clan.members.members)
                 {
                     members += member.memberName + ", ";
                 }
 
-                args.Player.SendMessage(clan.name + "(" + members + ")", Color.Red);
-
+                args.Player.SendMessage(clan.name + "(" + members + ")", Color.LightYellow);
+                i++;
             }
+
+            
 
         }
         void ReceiveDonation(CommandArgs args)
@@ -698,15 +714,16 @@ namespace PluginTemplate
         {
 			var ply = TShock.Players[args.Who];
 
+            ply.SendInfoMessage(ply.Name);
+
 			Players.Add(new AvPlayer(ply.Name));
             var player = Players.GetByUsername(ply.Name);
 
 
             var clanname = "";
 
-            if (player.tsPlayer.Account != null && player.clan == "")
+            if (ply.Account != null && player.clan == "")
             {
-
                 foreach (Clan clan in _clans.allClans)
                 {
                     if (clan.members.FindMember(player.name) != null)
@@ -718,7 +735,7 @@ namespace PluginTemplate
                     }
                 }
 
-                player.tsPlayer.SendMessage("You are still in " + clanname, Color.LightGoldenrodYellow);
+                ply.SendMessage("You are still in " + clanname, Color.LightGoldenrodYellow);
 
             }
 
@@ -1252,6 +1269,9 @@ namespace PluginTemplate
                         return;
                     }
                     args.Player.SendMessage("You were not invited to a clan!", Color.Red);
+                    return;
+                case "list":
+                    ClansList(args);
                     return;
                 case "d":
                 case "deny":
