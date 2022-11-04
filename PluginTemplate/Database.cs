@@ -33,6 +33,13 @@ namespace AverageTerrariaSurvival
                 );
             sqlCreator.EnsureTableStructure(clans);
 
+            var clanRegions = new SqlTable("ClanRegions",
+                new SqlColumn("Id", MySqlDbType.Int32) { Primary = true, AutoIncrement = true },
+                new SqlColumn("ClanName", MySqlDbType.String),
+                new SqlColumn("RegionName", MySqlDbType.String)
+                );
+            sqlCreator.EnsureTableStructure(clanRegions);
+
 
             var clanMembers = new SqlTable("ClanMembers",
                 new SqlColumn("Id", MySqlDbType.Int32) { Primary = true, AutoIncrement = true },
@@ -53,6 +60,11 @@ namespace AverageTerrariaSurvival
         public bool InsertClan(Clan clan)
         {
             return _db.Query("INSERT INTO Clans (ClanName, Owner) VALUES (@0, @1)", clan.name, clan.owner) != 0;
+        }
+
+        public bool InsertRegion(string regionName, Clan clan)
+        {
+            return _db.Query("INSERT INTO ClanRegions (ClanName, RegionName) VALUES (@0, @1)", clan.name, regionName) != 0;
         }
 
         public bool InsertMember(ClanMember cm)
@@ -106,9 +118,24 @@ namespace AverageTerrariaSurvival
                     var actualId = reader.Get<int>("Id");
                     var name = reader.Get<string>("ClanName");
                     var owner = reader.Get<string>("Owner");
-                    Console.WriteLine("A");
+
 
                     PluginTemplate.AvMain._clans.allClans.Add(new Clan(actualId, name, new ClanMembers(), owner));
+
+
+                }
+            }
+
+            using (var reader = _db.QueryReader("SELECT * FROM ClanRegions"))
+            {
+                while (reader.Read())
+                {
+                    var actualId = reader.Get<int>("Id");
+                    var name = reader.Get<string>("ClanName");
+                    var rname = reader.Get<string>("RegionName");
+
+
+                    PluginTemplate.AvMain._clans.FindClan(name).regions.Add(rname);
 
 
                 }

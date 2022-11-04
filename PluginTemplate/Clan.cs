@@ -13,6 +13,7 @@ namespace AverageTerrariaSurvival
         public string name{ get; set; }
         public ClanMembers members { get; set; }
 
+        public List<string> regions = new List<string>();
         public string owner { get; set; }
 
         public Clan(string name, ClanMembers members, string owner)

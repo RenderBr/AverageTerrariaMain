@@ -534,6 +534,7 @@ namespace PluginTemplate
             Commands.ChatCommands.Add(new Command("clan.chat", ClanChat, "c", "ditem"));
             Commands.ChatCommands.Add(new Command("clan.list", ClansList, "clist", "clans"));
             Commands.ChatCommands.Add(new Command("clan.use", Clan, "clan"));
+            Commands.ChatCommands.Add(new Command("clan.use", MyClan, "myclan", "cinfo", "claninfo"));
 
             Commands.ChatCommands.Add(new Command("av.admin", adminGiveDollas, "givecurrency", "gc", "givebal", "baladd"));
 
@@ -597,15 +598,25 @@ namespace PluginTemplate
         {
             var page = 1;
             var i = 0;
+            if(args.Parameters.Count > 0)
+            {
+                if (args.Parameters[0] == "list")
+                {
+                    args.Parameters.Clear();
+                }
+                else
+                {
+                    args.Parameters[0] = "" + 1;
+                    page = int.Parse(args.Parameters[0]);
+                }
+            }
+  
             if(_clans.allClans.Count == 0)
             {
                 args.Player.SendMessage("There are no clans!", Color.LightCyan);
                 return;
             }
-            if(args.Parameters.Count > 0)
-            {
-                page = int.Parse(args.Parameters[0]);
-            }
+    
             args.Player.SendMessage($"Clan List - Page {page}", Color.Gold);
 
             foreach (Clan clan in _clans.allClans) {
@@ -623,6 +634,58 @@ namespace PluginTemplate
             
 
         }
+
+        void MyClan(CommandArgs args)
+        {
+            var p = args.Player;
+            if(p.Account == null)
+            {
+                p.SendMessage("You must be logged into use this command!", Color.Orange);
+                return;
+            }
+
+            var ply = Players.GetByUsername(args.Player.Name);
+            if(ply.clan != "")
+            {
+                Clan clan = _clans.FindClan(ply.clan);
+
+                var memberCount = clan.members.members.Count;
+                var name = clan.name;
+                var yourTempRole = clan.members.FindMember(ply.name).role;
+                var yourRole = "";
+                var owner = clan.owner;
+
+                if(yourTempRole == 0)
+                {
+                    yourRole = "Rookie";
+                }
+                if(yourTempRole == 1)
+                {
+                    yourRole = "Member";
+                }
+                if (yourTempRole == 2)
+                {
+                    yourRole = "Admin";
+                }
+                if (yourTempRole == 3)
+                {
+                    yourRole = "Owner";
+                }
+
+                p.SendMessage("Clan Info for " + name, Color.Gold);
+                p.SendMessage("Clan Owner: " + owner, Color.LightBlue);
+                p.SendMessage("Your role in clan: " + yourRole, Color.LightBlue);
+                p.SendMessage("Member Count: " + memberCount, Color.LightBlue);
+                return;
+
+            }
+            else
+            {
+                p.SendMessage("You are not in a clan!", Color.Orange);
+                return;
+            }
+        }
+
         void ReceiveDonation(CommandArgs args)
         {
             if(_donatedItems.donations.Count <= 0)
@@ -719,23 +782,19 @@ namespace PluginTemplate
 			Players.Add(new AvPlayer(ply.Name));
             var player = Players.GetByUsername(ply.Name);
 
-
-            var clanname = "";
-
             if (ply.Account != null && player.clan == "")
             {
                 foreach (Clan clan in _clans.allClans)
                 {
-                    if (clan.members.FindMember(player.name) != null)
+                    if (clan.members.FindMember(player.name).memberName == ply.Name)
                     {
-                        clanname = clan.name;
+                        var clanname = clan.name;
                         Players.GetByUsername(player.name).clan = clanname;
-
+                        ply.SendMessage("You are still in " + clanname, Color.LightGoldenrodYellow);
                         break;
                     }
                 }
 
-                ply.SendMessage("You are still in " + clanname, Color.LightGoldenrodYellow);
 
             }
 
@@ -1109,6 +1168,12 @@ namespace PluginTemplate
             }
 
             var playersClan = Players.GetByUsername(args.Player.Name).clan;
+            if(playersClan == "")
+            {
+                args.Player.SendMessage("You are not currently in a clan!", Color.Red);
+                return;
+            }
+
             var clanMembers = _clans.FindClan(playersClan).members.members;
 
             foreach(ClanMember cm in clanMembers)
@@ -1171,6 +1236,8 @@ namespace PluginTemplate
                     
                     clan.members.members.Add(tempMember);
 
+                    Players.GetByUsername(args.Player.Name).clan = clanName;
+
                     _clans.allClans.Add(clan);
 
                     dbManager.InsertMember(tempMember);
@@ -1182,6 +1249,40 @@ namespace PluginTemplate
  
                     return;
                 case "remove":
+                case "region":
+                   if(args.Player.CurrentRegion != null)
+                    {
+                        if(args.Player.CurrentRegion.Owner == args.Player.Name)
+                        {
+                            Clan Rclan = _clans.FindClan(Players.GetByUsername(args.Player.Name).clan);
+                            if(Rclan == null)
+                            {
+                                args.Player.SendMessage("You are not in a clan!", Color.Red);
+                                return;
+
+                            }
+                            if(Rclan.members.FindMember(args.Player.Name).role < 2)
+                            {
+                                args.Player.SendMessage("You do not have permissions to add a clan region!", Color.Red);
+                                return;
+
+                            }
+                            dbManager.InsertRegion(args.Player.CurrentRegion.Name, Rclan);
+                            Rclan.regions.Add(args.Player.CurrentRegion.Name);
+                            args.Player.SendSuccessMessage("Successfully added clan region!");
+                        }
+                        else
+                        {
+                            args.Player.SendMessage("You must be the owner of this region!", Color.Red);
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        args.Player.SendMessage("Stand within a region you would like to add!", Color.Red);
+                        return;
+                    }
+                    return;
                 case "delete": // /clan delete
                     var DeletingPlayer = args.Player;
                     var Dclan = _clans.FindClan(Players.GetByUsername(DeletingPlayer.Name).clan);
@@ -1190,6 +1291,11 @@ namespace PluginTemplate
                     if (Dclan.owner == args.Player.Name)
                     {
                         var tclan = _clans.FindClan(Players.GetByUsername(args.Player.Name).clan);
+                        foreach(ClanMember member in tclan.members.members)
+                        {
+                            Players.GetByUsername(member.memberName).clan = "";
+                            dbManager.DeleteMember(member);
+                        }
 
                         dbManager.DeleteClan(tclan);
 
@@ -1205,10 +1311,10 @@ namespace PluginTemplate
                     }
                     args.Player.SendMessage("You are not in a clan or do not own the clan you are currently in!", Color.Red);
                     return;
-                case "invite": // /clan invite <player>
-                    var invc = _clans.FindClan(args.Player.Name).name;
+                case "invite": // /clan invite <player>s
+                    var invc = _clans.FindClan(Players.GetByUsername(args.Player.Name).clan);
                     var user = args.Player;
-                    var role = _clans.FindClan(args.Player.Name).members.FindMember(args.Player.Name).role;
+                    var role = invc.members.FindMember(user.Name).role;
                     var invitedPlayer = args.Parameters[1];
 
                     if (invc != null)
@@ -1221,21 +1327,22 @@ namespace PluginTemplate
                             //3 = owner/manager
                             if(role > 1)
                             {
-                                if(Players.GetByUsername(invitedPlayer).clan != null)
+                                if(Players.GetByUsername(invitedPlayer).clan != "")
                                 {
                                     args.Player.SendMessage("This player is already in a clan!", Color.Red);
                                     return;
                                 }
 
                                 Players.GetByUsername(invitedPlayer).invitedToClan = true;
-                                Players.GetByUsername(invitedPlayer).whichClanInvite = invc;
+                                Players.GetByUsername(invitedPlayer).whichClanInvite = invc.name;
                                 args.Player.SendMessage($"You invited {invitedPlayer} to {invc}!", Color.LightGreen);
                                 TSPlayer.FindByNameOrID(invitedPlayer)[0].SendMessage($"You have been invited to {invc} by {invitedPlayer}! Use /clan (a)ccept/(d)eny!", Color.Gold);
-
+                                return;
                             }
                             else
                             {
                                 args.Player.SendMessage("You are not permitted to invite users!", Color.Red);
+                                return;
                             }
                         }
                         else
@@ -1249,7 +1356,6 @@ namespace PluginTemplate
                         args.Player.SendMessage("You are not in a clan!", Color.Red);
                         return;
                     }
-                    args.Player.SendMessage("Something happened!", Color.Red);
                     return;
                 case "a":
                 case "accept":
@@ -1260,8 +1366,11 @@ namespace PluginTemplate
                         _clans.FindClan(invitedToClan).members.members.Add(newMember);
                         dbManager.InsertMember(newMember);
                         TSPlayer.All.SendMessage($"{args.Player.Name} has joined {invitedToClan}!", Color.LightGreen);
+                        Players.GetByUsername(args.Player.Name).clan = invitedToClan;
+
                         Players.GetByUsername(args.Player.Name).invitedToClan = false;
                         Players.GetByUsername(args.Player.Name).whichClanInvite = "";
+                        return;
                     }
                     else
                     {
@@ -1304,6 +1413,8 @@ namespace PluginTemplate
 
         void onRegionEnter(TShockAPI.Hooks.RegionHooks.RegionEnteredEventArgs args)
         {
+            var ply = args.Player;
+
             if(args.Region.Name == Config.spawnName)
             {
                 args.Player.SendMessage("You have entered the safezone!", Color.LightGreen);
@@ -1311,6 +1422,28 @@ namespace PluginTemplate
 
             }
 
+            if (Players.GetByUsername(ply.Name).clan != ""){
+                var clan = _clans.FindClan(Players.GetByUsername(ply.Name).clan);    
+                
+                foreach(string region in clan.regions)
+                {
+                    if(args.Region.Name == region)
+                    {
+                        if (clan.members.FindMember(ply.Name).role < 1 || args.Region.AllowedIDs.Contains(ply.Account.ID))
+                        {
+
+                        }
+                        else
+                        {
+                            args.Region.SetAllowedIDs("" + ply.Account.ID);
+                            ply.SendInfoMessage("You have automatically been added to this clan region!");
+                        }
+
+                    }
+                }
+
+            }
+   
         }
 
 		void onRegionLeave(TShockAPI.Hooks.RegionHooks.RegionLeftEventArgs args)
