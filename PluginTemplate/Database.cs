@@ -72,6 +72,12 @@ namespace AverageTerrariaSurvival
             return _db.Query("INSERT INTO ClanMembers (ClanName, MemberName, Role, JoinDate) VALUES (@3, @0, @1, @2)", cm.memberName, cm.role, cm.joined, cm.clanName) != 0;
         }
 
+        public bool UpdateMemberRole(string memberName, int role)
+        {
+            return _db.Query("UPDATE ClanMembers SET Role=@0 WHERE MemberName=@1", memberName, role) != 0;
+        }
+
+
         public bool DeleteItem(DonatedItem item)
         {
             return _db.Query("DELETE FROM DonatedItems WHERE Id = @0", item.dbId) != 0;
@@ -150,9 +156,6 @@ namespace AverageTerrariaSurvival
                     var memberName = reader.Get<string>("MemberName");
                     var role = reader.Get<int>("Role");
                     var joined = reader.Get<DateTime>("JoinDate");
-
-
-                    PluginTemplate.AvMain._clans.FindClan(clanName).members.members = new List<ClanMember>();
 
                     PluginTemplate.AvMain._clans.FindClan(clanName).members.members.Add(new ClanMember(actualId, clanName, memberName, role, joined));
 

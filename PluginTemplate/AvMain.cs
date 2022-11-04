@@ -82,6 +82,7 @@ namespace PluginTemplate
             TShockAPI.GetDataHandlers.KillMe += KillMeEvent;
             TShockAPI.GetDataHandlers.TileEdit += onTileEdit;
             TShockAPI.GetDataHandlers.NPCStrike += strikeNPC;
+            TShockAPI.GetDataHandlers.PlayerDamage += onPlayerDamage;
 			TShockAPI.Hooks.RegionHooks.RegionEntered += onRegionEnter;
 			TShockAPI.Hooks.RegionHooks.RegionLeft += onRegionLeave;
 			Console.WriteLine("Average Survival LOADED");
@@ -105,6 +106,20 @@ namespace PluginTemplate
         public void PlayerLogin(TShockAPI.Hooks.PlayerPostLoginEventArgs args)
         {
 
+        }
+
+        public void onPlayerDamage(Object sender, GetDataHandlers.PlayerDamageEventArgs args)
+        {
+            var PVPedPlayer = args.Player;
+            var player = TShock.Players[args.ID];
+            if(_clans.FindClan(Players.GetByUsername(player.Name).clan) == _clans.FindClan(Players.GetByUsername(PVPedPlayer.Name).clan)){
+                args.Handled = true;
+            }
+            else
+            {
+                return;
+            }
+            
         }
 
         public void KillMeEvent(Object sender, GetDataHandlers.KillMeEventArgs args)
@@ -621,14 +636,7 @@ namespace PluginTemplate
 
             foreach (Clan clan in _clans.allClans) {
 
-                string members = "";
-                foreach(ClanMember member in clan.members.members)
-                {
-                    members += member.memberName + ", ";
-                }
-
-                args.Player.SendMessage(clan.name + "(" + members + ")", Color.LightYellow);
-                i++;
+                args.Player.SendMessage(clan.name + " - Member Count: " + clan.members.members.Count + "", Color.LightYellow);
             }
 
             
@@ -777,8 +785,6 @@ namespace PluginTemplate
         {
 			var ply = TShock.Players[args.Who];
 
-            ply.SendInfoMessage(ply.Name);
-
 			Players.Add(new AvPlayer(ply.Name));
             var player = Players.GetByUsername(ply.Name);
 
@@ -786,11 +792,10 @@ namespace PluginTemplate
             {
                 foreach (Clan clan in _clans.allClans)
                 {
-                    if (clan.members.FindMember(player.name).memberName == ply.Name)
+
+                    if (clan.members.FindMember(player.name) != null)
                     {
-                        var clanname = clan.name;
-                        Players.GetByUsername(player.name).clan = clanname;
-                        ply.SendMessage("You are still in " + clanname, Color.LightGoldenrodYellow);
+                        Players.GetByUsername(player.name).clan = clan.name;
                         break;
                     }
                 }
@@ -1211,11 +1216,85 @@ namespace PluginTemplate
 
             switch (subcommand)
             {
+                case "help":
+                case "commands":
+                    player.SendMessage("Clan Commands: ", Color.Gold);
+                    player.SendMessage("/clan create <clan> - creates a clan", Color.GreenYellow);
+                    player.SendMessage("/clan region - creates a clan region in the region you are standing in", Color.GreenYellow);
+                    player.SendMessage("/clan kick <member> - kicks a member", Color.GreenYellow);
+                    player.SendMessage("/clan leave - leaves the clan your in", Color.GreenYellow);
+                    player.SendMessage("/clan delete - deletes the clan (only usable by owner)", Color.GreenYellow);
+                    player.SendMessage("/clan invite <member> - invites a member to the clan", Color.GreenYellow);
+                    player.SendMessage("/clan list or /clans - displays a list of all clans", Color.GreenYellow);
+                    player.SendMessage("/clan promote <member> - promotes a member within clan", Color.GreenYellow);
+                    player.SendMessage("/c <message> - sends a message to the private clan chat", Color.GreenYellow);
+                    return;
+                case "promote":
+                    var canPromoteToMember = false;
+                    var canPromoteToAdmin = false;
+                    var userToPromote = args.Parameters[1];
+
+                    if (_clans.FindClan(Players.GetByUsername(player.Name).clan).members.FindMember(player.Name).role < 2)
+                    {
+                        args.Player.SendErrorMessage("You do not have permission to promote people in your clan!");
+                        return;
+                    }
+                    else
+                    {
+                        canPromoteToMember = true;
+
+
+                    }
+                    if (_clans.FindClan(Players.GetByUsername(player.Name).clan).members.FindMember(player.Name).role == 3)
+                    {
+                        canPromoteToMember = true;
+                        canPromoteToAdmin = true;
+                    }
+                    if (args.Parameters.Count == 1)
+                    {
+                        args.Player.SendErrorMessage("Enter a member name! Ex. /clan promote SomeGuy");
+                        return;
+                    }
+                    if (_clans.FindClan(Players.GetByUsername(userToPromote).clan).members.FindMember(userToPromote).memberName != "" && _clans.FindClan(Players.GetByUsername(userToPromote).clan).members.FindMember(userToPromote).role < 2)
+                    {
+                        if (canPromoteToMember && _clans.FindClan(Players.GetByUsername(userToPromote).clan).members.FindMember(userToPromote).role == 0)
+                        {
+                            _clans.FindClan(Players.GetByUsername(userToPromote).clan).members.FindMember(userToPromote).role = 1;
+                            dbManager.UpdateMemberRole(userToPromote, _clans.FindClan(Players.GetByUsername(userToPromote).clan).members.FindMember(userToPromote).role);
+                            foreach (ClanMember member in _clans.FindClan(Players.GetByUsername(userToPromote).clan).members.members)
+                            {
+                                TSPlayer.FindByNameOrID(userToPromote)[0].SendMessage($"{userToPromote} has been promoted to Member!", Color.Green);
+                            }
+                            return;
+                        }
+
+                        if (canPromoteToAdmin && _clans.FindClan(Players.GetByUsername(userToPromote).clan).members.FindMember(userToPromote).role == 1)
+                        {
+                            _clans.FindClan(Players.GetByUsername(userToPromote).clan).members.FindMember(userToPromote).role = 2;
+                            dbManager.UpdateMemberRole(userToPromote, _clans.FindClan(Players.GetByUsername(userToPromote).clan).members.FindMember(userToPromote).role);
+                            foreach (ClanMember member in _clans.FindClan(Players.GetByUsername(userToPromote).clan).members.members)
+                            {
+                                TSPlayer.FindByNameOrID(userToPromote)[0].SendMessage($"{userToPromote} has been promoted to Admin!", Color.Green);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        args.Player.SendErrorMessage("The user was either not found or cannot be promoted any higher!");
+                        return;
+                    }
+
+                    return;
                 case "create": // /clan create clanName
 
                     if(args.Parameters.Count == 1)
                     {
                         args.Player.SendErrorMessage("Enter a clan name! Ex. /clan create TheBestClan");
+                        return;
+                    }
+                    if(Players.GetByUsername(player.Name).clan != "")
+                    {
+                        args.Player.SendErrorMessage("You are already in a clan!");
                         return;
                     }
                     if(TimeRanks.TimeRanks.Players.GetByUsername(args.Player.Name).totalCurrency >= 1500)
@@ -1248,7 +1327,6 @@ namespace PluginTemplate
                     args.Player.SendMessage($"-1500 {TimeRanks.TimeRanks.config.currencyNamePlural} for creating a clan!", Color.Red);
  
                     return;
-                case "remove":
                 case "region":
                    if(args.Player.CurrentRegion != null)
                     {
@@ -1283,6 +1361,63 @@ namespace PluginTemplate
                         return;
                     }
                     return;
+                case "kick":
+                case "ban":
+                    var kickedPlayer = args.Parameters[1];
+                    if(Players.GetByUsername(player.Name).clan == ""){
+                        player.SendErrorMessage("You are not in a clan!");
+                        return;
+                    }
+
+                    
+                    if (_clans.FindClan(Players.GetByUsername(player.Name).clan).members.FindMember(player.Name).role > 1)
+                    {
+                        dbManager.DeleteMember(_clans.FindClan(Players.GetByUsername(player.Name).clan).members.FindMember(kickedPlayer));
+                        _clans.FindClan(Players.GetByUsername(player.Name).clan).members.members.Remove(_clans.FindClan(Players.GetByUsername(player.Name).clan).members.FindMember(kickedPlayer));
+                        TSPlayer.FindByNameOrID(kickedPlayer)[0].SendMessage("You have been kicked from your clan!", Color.Orange);
+                        Players.GetByUsername(kickedPlayer).clan = "";
+                        foreach(ClanMember member in _clans.FindClan(Players.GetByUsername(player.Name).clan).members.members)
+                        {
+                            if(TSPlayer.FindByNameOrID(member.memberName)[0].Active == true)
+                            {
+                                TSPlayer.FindByNameOrID(member.memberName)[0].SendMessage($"{kickedPlayer} has been kicked from the clan!", Color.Orange);
+                            }
+                        }
+                        return;
+                    }
+                    else
+                    {
+                        player.SendErrorMessage("You are not an admin of this clan!");
+                        return;
+                    }
+                    return;
+                case "quit":
+                case "leave":
+                    if (Players.GetByUsername(player.Name).clan == "")
+                    {
+                        player.SendErrorMessage("You are not in a clan!");
+                        return;
+                    }
+
+                    if (_clans.FindClan(Players.GetByUsername(player.Name).clan).owner == player.Name)
+                    {
+                        player.SendErrorMessage("The owner cannot leave their own clan!");
+                        return;
+                    }
+                        foreach (ClanMember member in _clans.FindClan(Players.GetByUsername(player.Name).clan).members.members)
+                        {
+                            if (TSPlayer.FindByNameOrID(member.memberName)[0].Active == true)
+                            {
+                                TSPlayer.FindByNameOrID(member.memberName)[0].SendMessage($"{player.Name} has left the clan!", Color.Orange);
+                            }
+                        }
+                        dbManager.DeleteMember(_clans.FindClan(Players.GetByUsername(player.Name).clan).members.FindMember(player.Name));
+                        _clans.FindClan(Players.GetByUsername(player.Name).clan).members.members.Remove(_clans.FindClan(Players.GetByUsername(player.Name).clan).members.FindMember(player.Name));
+                        Players.GetByUsername(player.Name).clan = "";
+                        return;
+                    
+                    return;
+                case "remove":
                 case "delete": // /clan delete
                     var DeletingPlayer = args.Player;
                     var Dclan = _clans.FindClan(Players.GetByUsername(DeletingPlayer.Name).clan);
@@ -1335,8 +1470,8 @@ namespace PluginTemplate
 
                                 Players.GetByUsername(invitedPlayer).invitedToClan = true;
                                 Players.GetByUsername(invitedPlayer).whichClanInvite = invc.name;
-                                args.Player.SendMessage($"You invited {invitedPlayer} to {invc}!", Color.LightGreen);
-                                TSPlayer.FindByNameOrID(invitedPlayer)[0].SendMessage($"You have been invited to {invc} by {invitedPlayer}! Use /clan (a)ccept/(d)eny!", Color.Gold);
+                                args.Player.SendMessage($"You invited {invitedPlayer} to {invc.name}!", Color.LightGreen);
+                                TSPlayer.FindByNameOrID(invitedPlayer)[0].SendMessage($"You have been invited to {invc.name} by {invitedPlayer}! Use /clan (a)ccept/(d)eny!", Color.Gold);
                                 return;
                             }
                             else
@@ -1389,6 +1524,7 @@ namespace PluginTemplate
                         Players.GetByUsername(args.Player.Name).invitedToClan = false;
                         Players.GetByUsername(args.Player.Name).whichClanInvite = "";
                         args.Player.SendMessage("You have denied the invite request!", Color.Red);
+                        return;
                     }
                     else
                     {

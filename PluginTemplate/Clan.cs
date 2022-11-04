@@ -11,7 +11,7 @@ namespace AverageTerrariaSurvival
     {
         public int dbId { get; set; }
         public string name{ get; set; }
-        public ClanMembers members { get; set; }
+        public ClanMembers members = new ClanMembers();
 
         public List<string> regions = new List<string>();
         public string owner { get; set; }
@@ -74,7 +74,7 @@ namespace AverageTerrariaSurvival
     public class ClanMembers
     {
         [JsonProperty("members")]
-        public List<ClanMember> members { get; set; }
+        public List<ClanMember> members = new List<ClanMember>();
 
         public ClanMember FindMember(string name)
         {
