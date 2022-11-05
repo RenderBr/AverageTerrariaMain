@@ -1173,7 +1173,7 @@ namespace PluginTemplate
 
             for(var i = 0; i < args.Parameters.Count; i++)
             {
-                message += args.Parameters[i];
+                message += " " + args.Parameters[i];
             }
 
             if(message == "")
@@ -1200,6 +1200,7 @@ namespace PluginTemplate
 
                 TSPlayer.FindByNameOrID(cm.memberName)[0].SendMessage($"[{playersClan}] {args.Player.Name}: {message}", Color.LightGreen);
             }
+            return;
         }
 
         void Clan(CommandArgs args)
