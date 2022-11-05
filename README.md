@@ -1,4 +1,4 @@
-# Average's Survival Plugin Base
+# Average's Main (Freebuild) Plugin Base
 
 - Hi, it's me Average! Just wanted to say that apart of our service to the Terraria community is open-sourcing all our plugins. ALL OF 'EM! 
 - This is the plugin base (the one that adds some functionality) for our Freebuild server. At: t.averageterraria.lol:7777
