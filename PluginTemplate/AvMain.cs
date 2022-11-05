@@ -488,40 +488,41 @@ namespace PluginTemplate
 
         }
 
+        //boss modifiers, no longer used
         void onBossSpawn(NpcSpawnEventArgs args)
         {
-            NPC npc = Main.npc[args.NpcId];
+            //NPC npc = Main.npc[args.NpcId];
 
-            if(npc.netID == NPCID.EyeofCthulhu)
-            {
+            //if(npc.netID == NPCID.EyeofCthulhu)
+            //{
                 
-                TSPlayer.All.SendMessage("A suspicious eye is upon us!", Color.Red);
-                npc.lifeMax = 10000+(TShock.Players.Length*1000);
-                npc.life = 10000+(TShock.Players.Length * 1000);
-                npc.height = 100;
-                npc.width = 100;
-                NetMessage.SendData(23, -1, -1, (NetworkText) null, args.NpcId);
-                TSPlayer.Server.StrikeNPC(args.NpcId, 1, 0, 0);
-                TSPlayer.All.SendData(PacketTypes.NpcUpdate, "", args.NpcId);
-                TSPlayer.All.SendData(PacketTypes.UpdateNPCName, npc.GivenName);
-                //update on client side immediately
-                args.Handled = true;
-            }
-            if (npc.netID == NPCID.SkeletronHead)
-            {
+            //    TSPlayer.All.SendMessage("A suspicious eye is upon us!", Color.Red);
+            //    npc.lifeMax = 10000+(TShock.Players.Length*1000);
+            //    npc.life = 10000+(TShock.Players.Length * 1000);
+            //    npc.height = 100;
+            //    npc.width = 100;
+            //    NetMessage.SendData(23, -1, -1, (NetworkText) null, args.NpcId);
+            //    TSPlayer.Server.StrikeNPC(args.NpcId, 1, 0, 0);
+            //    TSPlayer.All.SendData(PacketTypes.NpcUpdate, "", args.NpcId);
+            //    TSPlayer.All.SendData(PacketTypes.UpdateNPCName, npc.GivenName);
+            //    //update on client side immediately
+            //    args.Handled = true;
+            //}
+            //if (npc.netID == NPCID.SkeletronHead)
+            //{
 
-                TSPlayer.All.SendMessage("A suspicious eye is upon us!", Color.Red);
-                npc.lifeMax = 20000 + (TShock.Players.Length * 2000);
-                npc.life = 20000 + (TShock.Players.Length * 2000);
-                npc.height = 100;
-                npc.width = 100;
-                NetMessage.SendData(23, -1, -1, (NetworkText)null, args.NpcId);
-                TSPlayer.Server.StrikeNPC(args.NpcId, 1, 0, 0);
-                TSPlayer.All.SendData(PacketTypes.NpcUpdate, "", args.NpcId);
-                TSPlayer.All.SendData(PacketTypes.UpdateNPCName, npc.GivenName);
-                //update on client side immediately
-                args.Handled = true;
-            }
+            //    TSPlayer.All.SendMessage("A suspicious eye is upon us!", Color.Red);
+            //    npc.lifeMax = 20000 + (TShock.Players.Length * 2000);
+            //    npc.life = 20000 + (TShock.Players.Length * 2000);
+            //    npc.height = 100;
+            //    npc.width = 100;
+            //    NetMessage.SendData(23, -1, -1, (NetworkText)null, args.NpcId);
+            //    TSPlayer.Server.StrikeNPC(args.NpcId, 1, 0, 0);
+            //    TSPlayer.All.SendData(PacketTypes.NpcUpdate, "", args.NpcId);
+            //    TSPlayer.All.SendData(PacketTypes.UpdateNPCName, npc.GivenName);
+            //    //update on client side immediately
+            //    args.Handled = true;
+            //}
         }
 
         void onLeave(LeaveEventArgs args)
@@ -992,6 +993,7 @@ namespace PluginTemplate
             }
         }
 
+        //Custom Tile Behaviours
         void onTileEdit(object sender, GetDataHandlers.TileEditEventArgs tile)
         {
 
@@ -1142,6 +1144,7 @@ namespace PluginTemplate
 
         }
 
+        //Old tree handler
         void handleTree(int x, int y, TSPlayer Player)
         {
             WorldGen.KillTile(x, y);
@@ -1165,8 +1168,15 @@ namespace PluginTemplate
                 return;
             }
 
-            var message = args.Parameters[0];
-            if(message == null)
+            var messageLength = args.Parameters.Count;
+            var message = "";
+
+            for(var i = 0; i < args.Parameters.Count; i++)
+            {
+                message += args.Parameters[i];
+            }
+
+            if(message == "")
             {
                 args.Player.SendMessage("You cannot send an empty message to clan chat!", Color.Red);
                 return;
