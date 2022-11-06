@@ -33,6 +33,13 @@ namespace PluginTemplate
 
         public static DonatedItems _donatedItems = new DonatedItems();
         public static Clans _clans = new Clans();
+        public static bool restaurantOpen = false;
+        public static string restaurantName = "The Chef's Diner";
+
+        public static List<Tuple<TSPlayer, string>> orders = new List<Tuple<TSPlayer, string>>();
+        public static List<TSPlayer> chefs = new List<TSPlayer>();
+        public static List<TSPlayer> chefApplicants = new List<TSPlayer>();
+
 
         /// <summary>
         /// The name of the plugin.
@@ -142,6 +149,30 @@ namespace PluginTemplate
             }
         }
 
+        public void openRestaurant(CommandArgs args)
+        {
+            if(restaurantOpen == false)
+            {
+                restaurantOpen = true;
+                var lobbyRegion = TShock.Regions.GetRegionByName("lobby").Area;
+                var regionSize = (lobbyRegion.Width*lobbyRegion.Height);
+
+                for(var i = 0; i < regionSize; i++)
+                {
+                //    Main.tile[lobbyRegion.BottomRight().X+i, lobbyRegion.BottomRight().Y].
+                }
+
+                    
+                TSPlayer.All.SendMessage($"[{restaurantName}] The restaurant is now open for business! Head to /spawn to get some food :D", Color.LightBlue);
+            }
+            else
+            {
+                restaurantOpen = false;
+                TSPlayer.All.SendMessage($"[{restaurantName}] The restaurant has closed!", Color.LightBlue);
+
+            }
+        }
+        
         public void broadcastMessage(Object source, ElapsedEventArgs args)
         {
 			Random rnd = new Random();
@@ -431,6 +462,7 @@ namespace PluginTemplate
         }
         #endregion
 
+        #region InformPlayers
         public static void InformPlayers(bool hard = false)
 		{
 			foreach (TSPlayer person in TShock.Players)
@@ -451,6 +483,7 @@ namespace PluginTemplate
 			}
 
 		}
+        #endregion
         // /givecurrency <player> <quantity)
         void adminGiveDollas(CommandArgs args)
         {
@@ -535,6 +568,435 @@ namespace PluginTemplate
             }
         }
 
+        void SendToChefs(int type, Tuple<TSPlayer, string> order)
+        {
+
+            if(type == 0)
+            {
+                foreach (TSPlayer player in chefs)
+                {
+                    player.SendInfoMessage($"A new order (num. {orders.IndexOf(order)}) has been placed by {order.Item1.Name} for a {order.Item2}. Use /chef prep {orders.IndexOf(order)}");
+                }
+            }
+            var HeadChef = TSPlayer.FindByNameOrID("Evauation")[0];
+ 
+        }
+
+        void SendToChefs(int type, Tuple<TSPlayer, string> order, TSPlayer playerTakingOrder)
+        {
+
+            if (type == 1)
+            {
+                foreach (TSPlayer player in chefs)
+                {
+                    player.SendInfoMessage($"{playerTakingOrder.Name} is preparing order number {orders.IndexOf(order)}! Please do not prep this order unless you wanna break the game!)");
+                }
+            }
+
+            if (type == 2)
+            {
+                foreach (TSPlayer player in chefs)
+                {
+                    player.SendInfoMessage($"{playerTakingOrder.Name} has finished the order {orders.IndexOf(order)}!");
+                }
+            }
+
+        }
+
+        void Prep(CommandArgs args)
+        {
+            var Player = args.Player;
+            var Chef = Players.GetByUsername(Player.Name);
+            if(Chef.isChef == false)
+            {
+                Player.SendMessage("You aren't even a chef!", Color.Orange);
+                return;
+            }
+            if(Chef.prepping == false)
+            {
+                Player.SendMessage("You aren't prepping a meal!", Color.Orange);
+                return;
+            }
+
+            var Order = orders[Chef.order];
+
+            if (Order == null)
+            {
+                Player.SendMessage("Something went wrong with this order! You probably won't be able to continue... :(", Color.Orange);
+                return;
+            }
+
+            Player.SendMessage($"(Order Num. {Chef.order}) You successfully prepared the {Order.Item2}. Next step: /cook!", Color.Orange);
+            Chef.prepping = false;
+            Chef.cooking = true;
+            return;
+
+        }
+
+
+        void Cook(CommandArgs args)
+        {
+            var Player = args.Player;
+            var Chef = Players.GetByUsername(Player.Name);
+            if (Chef.isChef == false)
+            {
+                Player.SendMessage("You aren't even a chef!", Color.Orange);
+                return;
+            }
+            if (Chef.cooking == false)
+            {
+                Player.SendMessage("You aren't cooking a meal!", Color.Orange);
+                return;
+            }
+
+            var Order = orders[Chef.order];
+
+            if (Order == null)
+            {
+                Player.SendMessage("Something went wrong with this order! You probably won't be able to continue... :(", Color.Orange);
+                return;
+            }
+
+            Player.SendMessage($"(Order Num. {Chef.order}) You successfully cooked the {Order.Item2}. Next step: /plate!", Color.Orange);
+            Chef.cooking = false;
+            Chef.plating = true;
+            return;
+
+        }
+
+        void Plate(CommandArgs args)
+        {
+            var Player = args.Player;
+            var Chef = Players.GetByUsername(Player.Name);
+            if (Chef.isChef == false)
+            {
+                Player.SendMessage("You aren't even a chef!", Color.Orange);
+                return;
+            }
+            if (Chef.plating == false)
+            {
+                Player.SendMessage("You aren't plating a meal!", Color.Orange);
+                return;
+            }
+
+            var Order = orders[Chef.order];
+
+            if (Order == null)
+            {
+                Player.SendMessage("Something went wrong with this order! You probably won't be able to continue... :(", Color.Orange);
+                return;
+            }
+
+            Player.SendMessage($"(Order Num. {Chef.order}) You successfully plated the {Order.Item2}. Next step: /serve!", Color.Orange);
+            Chef.plating = false;
+            Chef.serving = true;
+            return;
+
+        }
+
+        void Serve(CommandArgs args)
+        {
+            var Player = args.Player;
+            var Chef = Players.GetByUsername(Player.Name);
+            if (Chef.isChef == false)
+            {
+                Player.SendMessage("You aren't even a chef!", Color.Orange);
+                return;
+            }
+            if (Chef.serving == false)
+            {
+                Player.SendMessage("You aren't serving a meal!", Color.Orange);
+                return;
+            }
+
+            var Order = orders[Chef.order];
+
+            if (Order == null)
+            {
+                Player.SendMessage("Something went wrong with this order! You probably won't be able to continue... :(", Color.Orange);
+                return;
+            }
+            var dolla = Convert.ToInt32((TShock.Utils.GetItemByName(Order.Item2)[0].GetStoreValue() / 5000) / 1.5);
+            Player.SendMessage($"(Order Num. {Chef.order}) You successfully served the {Order.Item2} to {Order.Item1.Name}. You've earned {dolla} dollas!", Color.Orange);
+            Chef.order = 0;
+            Chef.serving = false;
+            Order.Item1.GiveItem(TShock.Utils.GetItemByName(Order.Item2)[0].netID, 1);
+            Order.Item1.SendMessage($"Your food has been served by {Chef.name}! Enjoy :D! If you're feeling generous, tip them for their service with /pay!", Color.Green);
+            SendToChefs(2, Order, Player);
+            return;
+
+        }
+
+        void Menu(CommandArgs args)
+        {
+            TSPlayer Player = args.Player;
+
+            Player.SendInfoMessage("Menu for The Chef's Diner");
+            Player.SendInfoMessage("Golden Delight - $120");
+            Player.SendInfoMessage("Hamburger - $6");
+            Player.SendInfoMessage("Fries - $3");
+            Player.SendInfoMessage("Cream Soda - $4");
+            Player.SendInfoMessage("Coffee - $3");
+            Player.SendInfoMessage("Hot Dog - $6");
+            if(restaurantOpen == true)
+            {
+                Player.SendInfoMessage("Use /chef order <food> to order something! Ex. /chef order HotDog (You must be in the restaurant!)");
+            }
+            else
+            {
+                Player.SendInfoMessage("The restaurant is not currently open so you are unable to order food at this moment!");
+            }
+
+            return;
+
+
+        }
+
+        void Chef(CommandArgs args)
+        {
+            if(restaurantOpen != true)
+            {
+                args.Player.SendErrorMessage("The restaurant is not open at the moment!");
+                return;
+            }
+
+            if(args.Parameters.Count <= 0)
+            {
+                args.Player.SendErrorMessage("Invalid arguments. Use /chef help to get a list of commands!");
+                return;
+            }
+
+            var subcommand = args.Parameters[0];
+            var Player = args.Player;
+            var HeadChef = TSPlayer.FindByNameOrID("Evauation")[0];
+
+            switch (subcommand)
+            {
+                case "help":
+                    Player.SendInfoMessage("Chef Commands");
+                    Player.SendInfoMessage("/chef apply - puts your application in as a chef!");
+                    Player.SendInfoMessage("/chef order <food> - puts in an order for your food!");
+                    Player.SendInfoMessage("/chef prepare <order num> - used by chefs to prepare food!!");
+                    Player.SendInfoMessage("/menu - see a list of foods!");
+                    return;
+                case "apply":
+                    chefApplicants.Add(Player);
+                    HeadChef.SendMessage(Player.Name + " has applied for the sous-chef position! Use /chef (a)ccept " + Player.Name + " or /chef (d)eny " + Player.Name, Color.LightGreen);
+                    Player.SendInfoMessage("Your application has been submitted and is awaiting a response!");
+                    return;
+                case "a":
+                case "accept":
+                    if (args.Parameters[1] == null)
+                    {
+                        HeadChef.SendMessage("You must enter a valid player name to accept.", Color.Orange);
+                        return;
+                    }
+                    var acceptedPlayer = TSPlayer.FindByNameOrID(args.Parameters[1])[0];
+
+                    chefs.Add(acceptedPlayer);
+                    chefApplicants.Remove(acceptedPlayer);
+                    Players.GetByUsername(acceptedPlayer.Name).isChef = true;
+                    TSPlayer.All.SendMessage($"[{restaurantName}] {acceptedPlayer.Name} is the latest addition to the restaurant!", Color.Aqua);
+                    return;
+                case "d":
+                case "deny":
+                    if (args.Parameters[1] == null)
+                    {
+                        HeadChef.SendMessage("You must enter a valid player name to deny.", Color.Orange);
+                        return;
+                    }
+                    var deniedPlayer = TSPlayer.FindByNameOrID(args.Parameters[1])[0];
+
+                    chefApplicants.Remove(deniedPlayer);
+                    deniedPlayer.SendMessage("You have been denied for the position of chef!", Color.IndianRed);
+                    HeadChef.SendMessage($"You have denied {deniedPlayer}'s application!", Color.LightBlue);
+                    return;
+                case "request":
+                case "order":
+                    if (Player == HeadChef || Players.GetByUsername(Player.Name).isChef == true)
+                    {
+                        Player.SendErrorMessage("You cannot order from the restaurant and be working at the restaurant!");
+                        return;
+                    }
+                    if (args.Parameters[1] == null)
+                    {
+                        Player.SendErrorMessage("Check out the /menu to see a list of the foods you can order!");
+                        return;
+                    }
+                    if (Player.CurrentRegion.Name != "lobby")
+                    {
+                        Player.SendErrorMessage("You must be in the restaurant to order food!");
+                        return;
+                    }
+                    var requestedFood = args.Parameters[1].ToLower();
+                    var price = 0;
+
+                    if (requestedFood == "golden delight" || requestedFood == "gd" || requestedFood == "goldendelight")
+                    {
+                        requestedFood = "Golden Delight";
+                        price = 120;
+                        if (TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency < 120)
+                        {
+                            Player.SendErrorMessage("You do not have enough dollas to order this food! (120 $ needed)");
+                            return;
+                        }
+
+                        TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency -= 120;
+                        var order = new Tuple<TSPlayer, string>(Player, requestedFood);
+                        orders.Add(order);
+                        SendToChefs(0, order);
+                        Player.SendInfoMessage($"Your order has placed for a {requestedFood}! Please seat yourself and wait for a chef to prepare your food!");
+                        return;
+                    }
+                    if (requestedFood == "hamburger" || requestedFood == "burger" || requestedFood == "big mac" || requestedFood == "cheeseburger")
+                    {
+                        requestedFood = "Burger";
+                        price = 6;
+                        if (TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency < 6)
+                        {
+                            Player.SendErrorMessage("You do not have enough dollas to order this food! (6 $ needed)");
+                            return;
+                        }
+
+                        TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency -= 6;
+                        var order = new Tuple<TSPlayer, string>(Player, requestedFood);
+                        orders.Add(order);
+                        SendToChefs(0, order);
+                        Player.SendInfoMessage($"Your order has placed for a {requestedFood}! Please seat yourself and wait for a chef to prepare your food!");
+                        return;
+                    }
+                    if (requestedFood == "fries" || requestedFood == "french fry" || requestedFood == "fry")
+                    {
+                        requestedFood = "Fries";
+                        price = 3;
+                        if (TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency < 3)
+                        {
+                            Player.SendErrorMessage("You do not have enough dollas to order this food! (3 $ needed)");
+                            return;
+                        }
+
+                        TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency -= 3;
+                        var order = new Tuple<TSPlayer, string>(Player, requestedFood);
+                        orders.Add(order);
+                        SendToChefs(0, order);
+                        Player.SendInfoMessage($"Your order has placed for a {requestedFood}! Please seat yourself and wait for a chef to prepare your food!");
+                        return;
+                    }
+                    if (requestedFood == "cream soda" || requestedFood == "soda")
+                    {
+                        requestedFood = "Cream Soda";
+                        price = 4;
+                        if (TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency < 4)
+                        {
+                            Player.SendErrorMessage("You do not have enough dollas to order this food! (4 $ needed)");
+                            return;
+                        }
+
+                        TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency -= 4;
+                        var order = new Tuple<TSPlayer, string>(Player, requestedFood);
+                        orders.Add(order);
+                        SendToChefs(0, order);
+                        Player.SendInfoMessage($"Your order has placed for a {requestedFood}! Please seat yourself and wait for a chef to prepare your food!");
+                        return;
+                    }
+                    if (requestedFood == "coffee" || requestedFood == "latte" || requestedFood == "cappucino")
+                    {
+                        requestedFood = "Coffee";
+                        price = 3;
+                        if (TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency < 3)
+                        {
+                            Player.SendErrorMessage("You do not have enough dollas to order this food! (3 $ needed)");
+                            return;
+                        }
+
+                        TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency -= 3;
+                        var order = new Tuple<TSPlayer, string>(Player, requestedFood);
+                        orders.Add(order);
+                        SendToChefs(0, order);
+                        Player.SendInfoMessage($"Your order has placed for a {requestedFood}! Please seat yourself and wait for a chef to prepare your food!");
+                        return;
+                    }
+                    if (requestedFood == "hot dog" || requestedFood == "hotdog" || requestedFood == "dog")
+                    {
+                        requestedFood = "Hotdog";
+                        price = 6;
+                        if (TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency < 6)
+                        {
+                            Player.SendErrorMessage("You do not have enough dollas to order this food! (6 $ needed)");
+                            return;
+                        }
+
+                        TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency -= 6;
+                        var order = new Tuple<TSPlayer, string>(Player, requestedFood);
+                        orders.Add(order);
+                        SendToChefs(0, order);
+                        Player.SendInfoMessage($"Your order has placed for a {requestedFood}! Please seat yourself and wait for a chef to prepare your food!");
+                        return;
+                    }
+                    return;
+                case "make":
+                case "prep":
+                case "prepare":
+                    if(Player.CurrentRegion.Name != "kitchen")
+                    {
+                        if (args.Parameters[2] == "-test")
+                        {
+
+                        }
+                        else
+                        {
+                            Player.SendErrorMessage("You must be in the kitchen to prepare food!");
+                            return;
+                        }
+                        
+                    }
+                    if (args.Parameters[1] == null)
+                    {
+                        Player.SendErrorMessage("Please specify an order number to prepare! Ex. /chef prepare 5");
+                        return;
+                    }
+                    var o = int.Parse(args.Parameters[1]);
+                    var porder = orders[o];
+
+                    SendToChefs(1, porder, Player);
+                    Players.GetByUsername(Player.Name).order = o;
+                    Player.SendInfoMessage($"You have just started prepping order number {o} for {porder.Item1.Name}. Begin with /prep");
+                    Players.GetByUsername(Player.Name).prepping = true;
+                    return;
+                case "quit":
+                    if (Players.GetByUsername(Player.Name).isChef == false && chefs.Contains(Player) == false)
+                    {
+                        Player.SendErrorMessage("You are not a chef!");
+                        return;
+                    }
+
+                    var quittingPlayer = Players.GetByUsername(Player.Name);
+                    quittingPlayer.isChef = false;
+                    chefs.Remove(Player);
+                    TSPlayer.All.SendMessage($"[{restaurantName}] {Player.Name} has quit their job at The Chef's Diner!", Color.IndianRed);
+                    return;
+                case "fire":
+                case "kick":
+                    var kickedPlayer = args.Parameters[1];
+
+                    if(Players.GetByUsername(args.Parameters[1]).isChef == false && chefs.Contains(TSPlayer.FindByNameOrID(args.Parameters[1])[0]) == false)
+                    {
+                        Player.SendErrorMessage("Not a valid chef!");
+                        return;
+                    }
+
+
+                    var kickedPlayerValid = Players.GetByUsername(kickedPlayer);
+                    kickedPlayerValid.isChef = false;
+                    chefs.Remove(Player);
+                    TSPlayer.All.SendMessage($"[{restaurantName}] {kickedPlayerValid.name} has been fired from The Chef's Diner!", Color.IndianRed);
+                    return;
+                default:
+                    Player.SendErrorMessage("Invalid arguments. Use /chef help to get a list of commands!");
+                    return;
+            }
+        }
+
         void onInitialize(EventArgs e)
         {
             Config = Config.Read();
@@ -550,6 +1012,14 @@ namespace PluginTemplate
             Commands.ChatCommands.Add(new Command("clan.chat", ClanChat, "c", "ditem"));
             Commands.ChatCommands.Add(new Command("clan.list", ClansList, "clist", "clans"));
             Commands.ChatCommands.Add(new Command("clan.use", Clan, "clan"));
+            Commands.ChatCommands.Add(new Command("av.admin", openRestaurant, "openres", "resopen", "restaurant"));
+            Commands.ChatCommands.Add(new Command("av.bounty", Menu, "menu"));
+            Commands.ChatCommands.Add(new Command("av.bounty", Menu, "order"));
+            Commands.ChatCommands.Add(new Command("av.bounty", Prep, "prep", "prepare"));
+            Commands.ChatCommands.Add(new Command("av.bounty", Cook, "cook"));
+            Commands.ChatCommands.Add(new Command("av.bounty", Plate, "plate"));
+            Commands.ChatCommands.Add(new Command("av.bounty", Serve, "serve"));
+            Commands.ChatCommands.Add(new Command("av.bounty", Chef, "chef"));
             Commands.ChatCommands.Add(new Command("clan.use", MyClan, "myclan", "cinfo", "claninfo"));
 
             Commands.ChatCommands.Add(new Command("av.admin", adminGiveDollas, "givecurrency", "gc", "givebal", "baladd"));
@@ -566,14 +1036,24 @@ namespace PluginTemplate
 
 
         }
+        #region Donate Command
         void Donate(CommandArgs args)
         {
             var avp = Players.GetByUsername(args.Player.Name);
 
             if (avp.donateBeg.Enabled == true)
             {
-                args.Player.SendMessage("You must wait to use this command again!", Color.IndianRed);
-                return;
+                if(args.Player.HasPermission("cooldownbypass"))
+                {
+
+                }
+                else
+                {
+                    args.Player.SendMessage("You must wait to use this command again!", Color.IndianRed);
+                    return;
+                }
+
+
             }
 
             Players.GetByUsername(args.Player.Name).donateBeg.Start();
@@ -608,8 +1088,12 @@ namespace PluginTemplate
             TimeRanks.TimeRanks.Players.GetByUsername(args.Player.Name).totalCurrency += dolla;
             args.Player.SendMessage("You have inserted a " + item.Name + " into the donation pool and received " + dolla + " dollas!", Color.LightGreen);
             dbManager.InsertItem(new DonatedItem(item.netID, item.stack, item.prefix));
+            avp.donateBeg.Start();
+            return;
         }
+        #endregion
 
+        #region Clans List Command
         void ClansList(CommandArgs args)
         {
             var page = 1;
@@ -643,7 +1127,9 @@ namespace PluginTemplate
             
 
         }
+        #endregion
 
+        #region MyClan Command
         void MyClan(CommandArgs args)
         {
             var p = args.Player;
@@ -694,21 +1180,32 @@ namespace PluginTemplate
                 return;
             }
         }
+        #endregion
 
+        #region ReceiveDonation Command
         void ReceiveDonation(CommandArgs args)
         {
-            if(_donatedItems.donations.Count <= 0)
+            var avp = Players.GetByUsername(args.Player.Name);
+
+            if (_donatedItems.donations.Count <= 0)
             {
                 args.Player.SendMessage("There are currently no items in the donation pool! Use /donate to insert an item!", Color.IndianRed);
                 return;
             }
 
-            var avp = Players.GetByUsername(args.Player.Name);
 
             if (avp.donateBeg.Enabled == true)
             {
-                args.Player.SendMessage("You must wait to use this command again!", Color.IndianRed);
-                return;
+                if (args.Player.HasPermission("cooldownbypass"))
+                {
+
+                }
+                else
+                {
+                    args.Player.SendMessage("You must wait to use this command again!", Color.IndianRed);
+                    return;
+                }
+
             }
 
             Players.GetByUsername(args.Player.Name).donateBeg.Start();
@@ -722,6 +1219,8 @@ namespace PluginTemplate
                 dbManager.DeleteItem(item);
                 _donatedItems.donations.Remove(item);
                 args.Player.SendMessage("You have received a " + EnglishLanguage.GetItemNameById(item.id) + " from the donation pool!", Color.LightGreen);
+                avp.donateBeg.Start();
+                return;
             }
             else
             {
@@ -730,8 +1229,9 @@ namespace PluginTemplate
             }
 
         }
+        #endregion
 
-
+        #region Bounty
         void Bounty(CommandArgs b)
         {
             if(b.Parameters.Count == 0) {
@@ -776,7 +1276,7 @@ namespace PluginTemplate
 
 
         }
-
+        #endregion
         void noMoreCoolDown(Object obj, ElapsedEventArgs args)
         {
             
@@ -788,6 +1288,11 @@ namespace PluginTemplate
 
 			Players.Add(new AvPlayer(ply.Name));
             var player = Players.GetByUsername(ply.Name);
+
+            if(ply.Name == "Evauation")
+            {
+                player.isChef = true;
+            }
 
             if (ply.Account != null && player.clan == "")
             {
@@ -806,9 +1311,10 @@ namespace PluginTemplate
 
 
             player.donateBeg = new Timer(2 * 1000 * 60); //minutes
-
+            player.donateBeg.Elapsed += (sender, e) => player.donateStop(sender, e, player);
 
         }
+
 
         void NetHooks_SendData(SendDataEventArgs e)
         {
@@ -1028,7 +1534,7 @@ namespace PluginTemplate
                 {
                     Random r = new Random();
                     var noFurtherdrops = false;
-                    
+
                     tile.Player.GiveItem(ItemID.Wood, 250);
                     tile.Player.GiveItem(ItemID.Acorn, 25);
 
@@ -1193,13 +1699,17 @@ namespace PluginTemplate
 
             foreach(ClanMember cm in clanMembers)
             {
-                if(TSPlayer.FindByNameOrID(cm.memberName)[0].Active == false)
+                if(TSPlayer.FindByNameOrID(cm.memberName)[0].IsLoggedIn == false)
                 {
                     continue;
                 }
+                else
+                {
+                    TSPlayer.FindByNameOrID(cm.memberName)[0].SendMessage($"[{playersClan}] {args.Player.Name}: {message}", Color.LightGreen);
+                }
 
-                TSPlayer.FindByNameOrID(cm.memberName)[0].SendMessage($"[{playersClan}] {args.Player.Name}: {message}", Color.LightGreen);
             }
+
             return;
         }
 

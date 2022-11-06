@@ -54,9 +54,21 @@ namespace AverageTerrariaMain
         public string clan = "";
         public bool invitedToClan = false;
         public string whichClanInvite;
+        public bool isChef = false;
+        public int order = 0;
+        public bool prepping = false;
+        public bool cooking = false;
+        public bool plating = false;
+        public bool serving = false;
+
         public string Group
         {
             get { return !Online ? TShock.UserAccounts.GetUserAccountByName(name).Group : tsPlayer.Group.Name; }
+        }
+
+        public void donateStop(object sender, ElapsedEventArgs e, AvPlayer av)
+        {
+            donateBeg.Stop();
         }
 
         public AvPlayer(string name)
