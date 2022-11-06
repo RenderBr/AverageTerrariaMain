@@ -155,7 +155,7 @@ namespace PluginTemplate
             {
 				frozenPlayers.Add(FrozenPlayer);
 				Player.SendSuccessMessage("You have frozen " + FrozenPlayer.Name);
-				Player.SetBuff(BuffID.Frozen, -1);
+				Player.SetBuff(BuffID.Frozen, -1, true);
 				return;
 			}
 			return;
@@ -302,7 +302,7 @@ namespace PluginTemplate
 			Players.Add(new AvPlayer(ply.Name));
 
             if (ply.Group.Name == "guest") {
-				ply.SendMessage("[c/d74a06:Y][c/d74a06:o][c/d74a06:u] [c/d74a06:a][c/d84b06:r][c/d84b06:e] [c/d84b06:a] [c/d94c07:g][c/d94c07:u][c/d94c07:e][c/d94d07:s][c/d94d07:t][c/da4d07:!] [c/da4e07:P][c/da4e08:l][c/da4e08:e][c/db4e08:a][c/db4f08:s][c/db4f08:e] [c/db4f08:/][c/dc5008:r][c/dc5008:e][c/dc5009:g][c/dc5009:i][c/dc5009:s][c/dd5109:t][c/dd5109:e][c/dd5109:r] [c/dd5209:<][c/de5209:p][c/de520a:a][c/de520a:s][c/de530a:s][c/de530a:w][c/df530a:o][c/df530a:r][c/df540a:d][c/df540a:>] [c/e0540a:a][c/e0550b:n][c/e0550b:d] [c/e0550b:/][c/e1560b:l][c/e1560b:o][c/e1560b:g][c/e1560b:i][c/e2570c:n] [c/e2570c:<][c/e2570c:s][c/e2570c:a][c/e3580c:m][c/e3580c:e][c/e3580c:_][c/e3580c:p][c/e3590c:a][c/e4590d:s][c/e4590d:s][c/e4590d:w][c/e45a0d:o][c/e45a0d:r][c/e55a0d:d][c/e55a0d:>] [c/e55b0e:t][c/e55b0e:o] [c/e65c0e:g][c/e65c0e:a][c/e65c0e:i][c/e65c0e:n] [c/e75d0e:m][c/e75d0f:o][c/e75d0f:r][c/e75d0f:e] [c/e85e0f:a][c/e85e0f:c][c/e85e0f:c][c/e85f0f:e][c/e95f0f:s][c/e95f0f:s] [c/e96010:t][c/e96010:o] [c/ea6010:t][c/ea6110:h][c/ea6110:e] [c/eb6111:s][c/eb6211:e][c/eb6211:r][c/eb6211:v][c/eb6211:e][c/ec6311:r] [c/ec6311::][c/ec6311:D][c/ed6412:", Color.White);
+				ply.SendMessage("[c/d74a06:Y][c/d74a06:o][c/d74a06:u] [c/d74a06:a][c/d84b06:r][c/d84b06:e] [c/d84b06:a] [c/d94c07:g][c/d94c07:u][c/d94c07:e][c/d94d07:s][c/d94d07:t][c/da4d07:!] [c/da4e07:P][c/da4e08:l][c/da4e08:e][c/db4e08:a][c/db4f08:s][c/db4f08:e] [c/db4f08:/][c/dc5008:r][c/dc5008:e][c/dc5009:g][c/dc5009:i][c/dc5009:s][c/dd5109:t][c/dd5109:e][c/dd5109:r] [c/dd5209:<][c/de5209:p][c/de520a:a][c/de520a:s][c/de530a:s][c/de530a:w][c/df530a:o][c/df530a:r][c/df540a:d][c/df540a:>] [c/e0540a:a][c/e0550b:n][c/e0550b:d] [c/e0550b:/][c/e1560b:l][c/e1560b:o][c/e1560b:g][c/e1560b:i][c/e2570c:n] [c/e2570c:<][c/e2570c:s][c/e2570c:a][c/e3580c:m][c/e3580c:e][c/e3580c:_][c/e3580c:p][c/e3590c:a][c/e4590d:s][c/e4590d:s][c/e4590d:w][c/e45a0d:o][c/e45a0d:r][c/e55a0d:d][c/e55a0d:>] [c/e55b0e:t][c/e55b0e:o] [c/e65c0e:g][c/e65c0e:a][c/e65c0e:i][c/e65c0e:n] [c/e75d0e:m][c/e75d0f:o][c/e75d0f:r][c/e75d0f:e] [c/e85e0f:a][c/e85e0f:c][c/e85e0f:c][c/e85f0f:e][c/e95f0f:s][c/e95f0f:s] [c/e96010:t][c/e96010:o] [c/ea6010:t][c/ea6110:h][c/ea6110:e] [c/eb6111:s][c/eb6211:e][c/eb6211:r][c/eb6211:v][c/eb6211:e][c/ec6311:r] [c/ec6311::][c/ec6311:D]", Color.White);
 			}
 
 
@@ -451,7 +451,7 @@ namespace PluginTemplate
 
 			if(player[0].Group.Name == "guest" && args.Text.Contains("help"))
             {
-				player[0].SendMessage("[c/d74a06:Y][c/d74a06:o][c/d74a06:u] [c/d74a06:a][c/d84b06:r][c/d84b06:e] [c/d84b06:a] [c/d94c07:g][c/d94c07:u][c/d94c07:e][c/d94d07:s][c/d94d07:t][c/da4d07:!] [c/da4e07:P][c/da4e08:l][c/da4e08:e][c/db4e08:a][c/db4f08:s][c/db4f08:e] [c/db4f08:/][c/dc5008:r][c/dc5008:e][c/dc5009:g][c/dc5009:i][c/dc5009:s][c/dd5109:t][c/dd5109:e][c/dd5109:r] [c/dd5209:<][c/de5209:p][c/de520a:a][c/de520a:s][c/de530a:s][c/de530a:w][c/df530a:o][c/df530a:r][c/df540a:d][c/df540a:>] [c/e0540a:a][c/e0550b:n][c/e0550b:d] [c/e0550b:/][c/e1560b:l][c/e1560b:o][c/e1560b:g][c/e1560b:i][c/e2570c:n] [c/e2570c:<][c/e2570c:s][c/e2570c:a][c/e3580c:m][c/e3580c:e][c/e3580c:_][c/e3580c:p][c/e3590c:a][c/e4590d:s][c/e4590d:s][c/e4590d:w][c/e45a0d:o][c/e45a0d:r][c/e55a0d:d][c/e55a0d:>] [c/e55b0e:t][c/e55b0e:o] [c/e65c0e:g][c/e65c0e:a][c/e65c0e:i][c/e65c0e:n] [c/e75d0e:m][c/e75d0f:o][c/e75d0f:r][c/e75d0f:e] [c/e85e0f:a][c/e85e0f:c][c/e85e0f:c][c/e85f0f:e][c/e95f0f:s][c/e95f0f:s] [c/e96010:t][c/e96010:o] [c/ea6010:t][c/ea6110:h][c/ea6110:e] [c/eb6111:s][c/eb6211:e][c/eb6211:r][c/eb6211:v][c/eb6211:e][c/ec6311:r] [c/ec6311::][c/ec6311:D][c/ed6412:", Color.White);
+				player[0].SendMessage("[c/d74a06:Y][c/d74a06:o][c/d74a06:u] [c/d74a06:a][c/d84b06:r][c/d84b06:e] [c/d84b06:a] [c/d94c07:g][c/d94c07:u][c/d94c07:e][c/d94d07:s][c/d94d07:t][c/da4d07:!] [c/da4e07:P][c/da4e08:l][c/da4e08:e][c/db4e08:a][c/db4f08:s][c/db4f08:e] [c/db4f08:/][c/dc5008:r][c/dc5008:e][c/dc5009:g][c/dc5009:i][c/dc5009:s][c/dd5109:t][c/dd5109:e][c/dd5109:r] [c/dd5209:<][c/de5209:p][c/de520a:a][c/de520a:s][c/de530a:s][c/de530a:w][c/df530a:o][c/df530a:r][c/df540a:d][c/df540a:>] [c/e0540a:a][c/e0550b:n][c/e0550b:d] [c/e0550b:/][c/e1560b:l][c/e1560b:o][c/e1560b:g][c/e1560b:i][c/e2570c:n] [c/e2570c:<][c/e2570c:s][c/e2570c:a][c/e3580c:m][c/e3580c:e][c/e3580c:_][c/e3580c:p][c/e3590c:a][c/e4590d:s][c/e4590d:s][c/e4590d:w][c/e45a0d:o][c/e45a0d:r][c/e55a0d:d][c/e55a0d:>] [c/e55b0e:t][c/e55b0e:o] [c/e65c0e:g][c/e65c0e:a][c/e65c0e:i][c/e65c0e:n] [c/e75d0e:m][c/e75d0f:o][c/e75d0f:r][c/e75d0f:e] [c/e85e0f:a][c/e85e0f:c][c/e85e0f:c][c/e85f0f:e][c/e95f0f:s][c/e95f0f:s] [c/e96010:t][c/e96010:o] [c/ea6010:t][c/ea6110:h][c/ea6110:e] [c/eb6111:s][c/eb6211:e][c/eb6211:r][c/eb6211:v][c/eb6211:e][c/ec6311:r] [c/ec6311::][c/ec6311:D]", Color.White);
             }
 
 			if(cg.Occuring == true)
