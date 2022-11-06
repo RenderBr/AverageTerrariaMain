@@ -421,6 +421,17 @@ namespace PluginTemplate
         void infoCommand(CommandArgs args)
         {
             args.Player.SendSuccessMessage(Config.infoMessage);
+			return;
+        }
+
+		void aboutCommand(CommandArgs args)
+        {
+			TSPlayer Player = args.Player;
+
+			if(args.Parameters.Count < 0)
+            {
+				Player.SendInfoMessage("Please enter something to get info about: ");
+            }
         }
 
         void fightCommand(CommandArgs args)
