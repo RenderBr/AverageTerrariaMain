@@ -1,5 +1,4 @@
 ﻿using AverageTerrariaMain;
-using AverageTerrariaSurvival;
 using System;
 using Terraria.ObjectData;
 using Terraria;
@@ -9,11 +8,10 @@ using Terraria.ID;
 using System.Timers;
 using Microsoft.Xna.Framework;
 using System.Text.RegularExpressions;
-using NCalc;
 using TShockAPI.Localization;
 using Terraria.Localization;
 using System.Collections.Generic;
-using Mono.Data.Sqlite;
+using Microsoft.Data.Sqlite;
 using System.IO;
 using System.Text;
 using System.Data;
@@ -29,6 +27,9 @@ namespace PluginTemplate
     {
 		internal static readonly AvPlayers Players = new AvPlayers();
 
+		public static List<TSPlayer> frozenPlayers = new List<TSPlayer>();
+		public static List<Topic> TopicList = new List<Topic>();
+		public static List<Element> ElementList = new List<Element>();
 		public Timer bcTimer;
         private IDbConnection _db;
         public static Database dbManager;
@@ -89,7 +90,7 @@ namespace PluginTemplate
       switch (TShock.Config.Settings.StorageType.ToLower())
       {
           case "sqlite":
-              _db = new SqliteConnection(string.Format("uri=file://{0},Version=3",
+              _db = new SqliteConnection(string.Format("Data Source={0}",
                   Path.Combine(TShock.SavePath, "AvSurvival.sqlite")));
               break;
           default:
@@ -126,6 +127,40 @@ namespace PluginTemplate
 			TSPlayer.Server.SetTime(true, 0.0);
 		}
 
+		public void Freeze(CommandArgs args)
+        {
+			TSPlayer Player = args.Player;
+
+			if(args.Parameters.Count == 0)
+            {
+				Player.SendErrorMessage("Enter a user to freeze. Ex. /freeze <player>");
+				return;
+            }
+
+			TSPlayer FrozenPlayer = TSPlayer.FindByNameOrID(args.Parameters[0])[0];
+
+			if(FrozenPlayer == null)
+            {
+				Player.SendErrorMessage("Invalid user!");
+				return;
+			}
+
+            if (frozenPlayers.Contains(FrozenPlayer)){
+				frozenPlayers.Remove(FrozenPlayer);
+				Player.SendSuccessMessage("You have un-frozen " + FrozenPlayer.Name);
+				Player.SetBuff(BuffID.Frozen, 0, true);
+				return;
+            }
+            else
+            {
+				frozenPlayers.Add(FrozenPlayer);
+				Player.SendSuccessMessage("You have frozen " + FrozenPlayer.Name);
+				Player.SetBuff(BuffID.Frozen, -1);
+				return;
+			}
+			return;
+        }
+
 		public void chatGames(Object source, ElapsedEventArgs args)
         {
 			Random rand = new Random();
@@ -140,21 +175,21 @@ namespace PluginTemplate
 				case 1:
 					Oper = "-";
 					mathProblem = rand.Next(1, 100) + Oper + rand.Next(1, 150);
-					 answer = (int)new Expression(mathProblem).Evaluate();
+					answer = int.Parse(Oper);
 					cg.answer = answer;
 
 					break;
 				case 2:
 					Oper = "+";
 					mathProblem = rand.Next(1, 100) + Oper + rand.Next(1, 150);
-					 answer = (int)new Expression(mathProblem).Evaluate();
+					answer = int.Parse(Oper);
 					cg.answer = answer;
 
 					break;
 				case 3:
 					Oper = "*";
 					mathProblem = rand.Next(1, 12) + Oper + rand.Next(1, 12);
-					answer = (int)new Expression(mathProblem).Evaluate();
+					answer = int.Parse(Oper);
 					cg.answer = answer;
 					break;
 				case 4:
@@ -163,7 +198,7 @@ namespace PluginTemplate
 				default:
 					Oper= "+";
 					mathProblem = rand.Next(1, 100) + Oper + rand.Next(1, 150);
-					answer = (int)new Expression(mathProblem).Evaluate();
+					answer = int.Parse(Oper);
 					cg.answer = answer;
 					break;
 			}
@@ -226,10 +261,14 @@ namespace PluginTemplate
 			Commands.ChatCommands.Add(new Command("av.stoprain", stopRainCommand, "stoprain", "sr"));
 			Commands.ChatCommands.Add(new Command("av.tpAverage", tpToAverage, "average", "av", "tpav"));
 			Commands.ChatCommands.Add(new Command("av.boss", killBosses, "killbosses", "kb"));
+			Commands.ChatCommands.Add(new Command("av.admin", adminAbout, "ab", "adminab", "adminabout"));
+			Commands.ChatCommands.Add(new Command("av.helper", Freeze, "f", "freeze"));
+
+			Commands.ChatCommands.Add(new Command("av.info", aboutCommand, "about"));
+
 			Commands.ChatCommands.Add(new Command("av.admin", triggerCg, "chatgame", "cg"));
 			cg.Occuring = false;
 			cg.answer = 0;
-
 
 			//Broadcasts
 			bcTimer = new Timer(Config.bcInterval*1000*60); //minutes
@@ -244,6 +283,8 @@ namespace PluginTemplate
 			cgTimer.Elapsed += chatGames;
 			cgTimer.AutoReset = true;
 			cgTimer.Enabled = true;
+
+			dbManager.InitialSync();
 		}
 
 		void onGreet(GreetPlayerEventArgs args)
@@ -259,7 +300,13 @@ namespace PluginTemplate
 
 
 			Players.Add(new AvPlayer(ply.Name));
-        }
+
+            if (ply.Group.Name == "guest") {
+				ply.SendMessage("[c/d74a06:Y][c/d74a06:o][c/d74a06:u] [c/d74a06:a][c/d84b06:r][c/d84b06:e] [c/d84b06:a] [c/d94c07:g][c/d94c07:u][c/d94c07:e][c/d94d07:s][c/d94d07:t][c/da4d07:!] [c/da4e07:P][c/da4e08:l][c/da4e08:e][c/db4e08:a][c/db4f08:s][c/db4f08:e] [c/db4f08:/][c/dc5008:r][c/dc5008:e][c/dc5009:g][c/dc5009:i][c/dc5009:s][c/dd5109:t][c/dd5109:e][c/dd5109:r] [c/dd5209:<][c/de5209:p][c/de520a:a][c/de520a:s][c/de530a:s][c/de530a:w][c/df530a:o][c/df530a:r][c/df540a:d][c/df540a:>] [c/e0540a:a][c/e0550b:n][c/e0550b:d] [c/e0550b:/][c/e1560b:l][c/e1560b:o][c/e1560b:g][c/e1560b:i][c/e2570c:n] [c/e2570c:<][c/e2570c:s][c/e2570c:a][c/e3580c:m][c/e3580c:e][c/e3580c:_][c/e3580c:p][c/e3590c:a][c/e4590d:s][c/e4590d:s][c/e4590d:w][c/e45a0d:o][c/e45a0d:r][c/e55a0d:d][c/e55a0d:>] [c/e55b0e:t][c/e55b0e:o] [c/e65c0e:g][c/e65c0e:a][c/e65c0e:i][c/e65c0e:n] [c/e75d0e:m][c/e75d0f:o][c/e75d0f:r][c/e75d0f:e] [c/e85e0f:a][c/e85e0f:c][c/e85e0f:c][c/e85f0f:e][c/e95f0f:s][c/e95f0f:s] [c/e96010:t][c/e96010:o] [c/ea6010:t][c/ea6110:h][c/ea6110:e] [c/eb6111:s][c/eb6211:e][c/eb6211:r][c/eb6211:v][c/eb6211:e][c/ec6311:r] [c/ec6311::][c/ec6311:D][c/ed6412:", Color.White);
+			}
+
+
+		}
 
 		void killBosses(CommandArgs args)
         {
@@ -399,7 +446,13 @@ namespace PluginTemplate
 
 		void onChat(ServerChatEventArgs args)
         {
+
 			var player = TSPlayer.FindByNameOrID(args.Who.ToString());
+
+			if(player[0].Group.Name == "guest" && args.Text.Contains("help"))
+            {
+				player[0].SendMessage("[c/d74a06:Y][c/d74a06:o][c/d74a06:u] [c/d74a06:a][c/d84b06:r][c/d84b06:e] [c/d84b06:a] [c/d94c07:g][c/d94c07:u][c/d94c07:e][c/d94d07:s][c/d94d07:t][c/da4d07:!] [c/da4e07:P][c/da4e08:l][c/da4e08:e][c/db4e08:a][c/db4f08:s][c/db4f08:e] [c/db4f08:/][c/dc5008:r][c/dc5008:e][c/dc5009:g][c/dc5009:i][c/dc5009:s][c/dd5109:t][c/dd5109:e][c/dd5109:r] [c/dd5209:<][c/de5209:p][c/de520a:a][c/de520a:s][c/de530a:s][c/de530a:w][c/df530a:o][c/df530a:r][c/df540a:d][c/df540a:>] [c/e0540a:a][c/e0550b:n][c/e0550b:d] [c/e0550b:/][c/e1560b:l][c/e1560b:o][c/e1560b:g][c/e1560b:i][c/e2570c:n] [c/e2570c:<][c/e2570c:s][c/e2570c:a][c/e3580c:m][c/e3580c:e][c/e3580c:_][c/e3580c:p][c/e3590c:a][c/e4590d:s][c/e4590d:s][c/e4590d:w][c/e45a0d:o][c/e45a0d:r][c/e55a0d:d][c/e55a0d:>] [c/e55b0e:t][c/e55b0e:o] [c/e65c0e:g][c/e65c0e:a][c/e65c0e:i][c/e65c0e:n] [c/e75d0e:m][c/e75d0f:o][c/e75d0f:r][c/e75d0f:e] [c/e85e0f:a][c/e85e0f:c][c/e85e0f:c][c/e85f0f:e][c/e95f0f:s][c/e95f0f:s] [c/e96010:t][c/e96010:o] [c/ea6010:t][c/ea6110:h][c/ea6110:e] [c/eb6111:s][c/eb6211:e][c/eb6211:r][c/eb6211:v][c/eb6211:e][c/ec6311:r] [c/ec6311::][c/ec6311:D][c/ed6412:", Color.White);
+            }
 
 			if(cg.Occuring == true)
             {
@@ -445,15 +498,336 @@ namespace PluginTemplate
 			return;
         }
 
+		void adminAbout(CommandArgs args)
+        {
+			TSPlayer Player = args.Player;
+			string secondSubCommand;
+
+			if (args.Parameters.Count <= 0)
+            {
+				Player.SendErrorMessage("/ab topic (add/del/list)");
+				Player.SendErrorMessage("/ab info (add/del/list/setTopic/setMessage)");
+				return;
+            }
+			if(args.Parameters.Count == 1)
+            {
+				secondSubCommand = string.Empty;
+            }
+            else
+            {
+				secondSubCommand = args.Parameters[1];
+			}
+
+			var subcommand = args.Parameters[0];
+			Console.WriteLine("Pre1");
+
+			switch (subcommand)
+            {
+				case "t":
+				case "topic":
+
+					if (string.IsNullOrEmpty(secondSubCommand))
+                    {
+						Player.SendErrorMessage("/ab topic (add/del/list)");
+								return;
+					}
+					switch (secondSubCommand)
+                    {
+						case "a":
+						case "create":
+						case "add":
+							if (args.Parameters.Count == 2){
+								Player.SendErrorMessage("/ab topic add <name>");
+								return;
+							}
+							var addedTopic = args.Parameters[2];
+
+							var newAddedTopic = new Topic(addedTopic);
+							TopicList.Add(newAddedTopic);
+							dbManager.InsertTopic(newAddedTopic);
+							Player.SendSuccessMessage($"{newAddedTopic.name} has been added as a topic!");
+							return;
+						case "d":
+						case "r":
+						case "del":
+						case "delete":
+						case "remove":
+							bool removeElementsToo = false;
+							if (args.Parameters.Count == 2)
+							{
+								Player.SendErrorMessage("/ab topic del <name> <-r> (-r will delete all elements assigned to the topic!)");
+								return;
+							}
+							if(args.Parameters.Count == 4)
+                            {
+								if (args.Parameters[3] == "-r")
+								{
+									removeElementsToo = true;
+								}
+							}
+							
+							var deleteTopic = args.Parameters[2];
+
+							var deletedTopic = Topic.GetByName(deleteTopic);
+							if (removeElementsToo == true)
+                            {
+								foreach(var element in ElementList)
+                                {
+									if(element.topic == deletedTopic.dbId)
+                                    {
+										ElementList.Remove(element);
+                                    }
+                                }
+								Player.SendSuccessMessage($"The topic {deletedTopic.name} has been deleted along with all of it's elements!");
+
+							}
+							else
+                            {
+								Player.SendSuccessMessage($"The topic {deletedTopic.name} has been deleted!");
+							}
+
+							TopicList.Remove(deletedTopic);
+							dbManager.DeleteTopic(deletedTopic);
+							return;
+						case "list":
+						case "l":
+							if(TopicList.Count == 0)
+                            {
+								Player.SendErrorMessage("There are no topics!");
+								return;
+                            }
+							string topicListString = "";
+
+                            foreach (Topic topic in TopicList)
+                            {
+								if(TopicList.IndexOf(topic) == TopicList.Count - 1)
+                                {
+									topicListString += topic.name;
+                                }
+                                else
+                                {
+									topicListString += topic.name + ", ";
+                                }
+                            }
+							Player.SendInfoMessage("List of topics: " + topicListString);
+							return;
+						default:
+							Player.SendErrorMessage("/ab topic (add/del/list)");
+							return;
+
+					}
+					return;
+				case "element":
+				case "info":
+				case "i":
+				case "e":
+					if (secondSubCommand == null)
+					{
+						Player.SendErrorMessage("/ab (e)lement/(i)nfo (add/del/list/setTopic/setMessage)");
+						return;
+					}
+					switch (secondSubCommand)
+					{
+						case "a":
+						case "create":
+						case "add":
+							if (args.Parameters.Count == 2)
+							{
+								Player.SendErrorMessage("/ab info add <name> <assignToTopicName>");
+								return;
+							}
+							var addedElement = args.Parameters[2];
+
+							if (args.Parameters.Count == 3)
+							{
+								Player.SendErrorMessage($"/ab info add {addedElement} <assignToTopicName>");
+								return;
+							}
+							var assignedTopic = Topic.GetByName(args.Parameters[3]).dbId;
+
+							var newAddedElement = new Element(addedElement, "", assignedTopic);
+							ElementList.Add(newAddedElement);
+							dbManager.InsertElement(newAddedElement);
+							Player.SendSuccessMessage($"{newAddedElement.name} has been added as an element, assigned to {args.Parameters[3]}!");
+							return;
+						case "d":
+						case "r":
+						case "delete":
+						case "del":
+						case "remove":
+							if (args.Parameters.Count == 2)
+							{
+								Player.SendErrorMessage("/ab info del <name>");
+								return;
+							}
+			
+							var deleteElement = args.Parameters[2];
+
+							var deletedElement = Element.GetByName(deleteElement);
+					
+							Player.SendSuccessMessage($"The element {deletedElement.name} has been deleted!");
+						
+							ElementList.Remove(deletedElement);
+							dbManager.DeleteElement(deletedElement);
+							return;
+						case "setTopic":
+						case "st":
+							if (args.Parameters.Count == 2)
+                            {
+								Player.SendErrorMessage("/ab info st <elementName> <newTopicName>");
+								return;
+							}
+							Console.WriteLine("BEEP1");
+							dbManager.updateStructure();
+							Console.WriteLine("BEEP2");
+
+							var setElement = Element.GetByName(args.Parameters[2]);
+							Console.WriteLine("BEEP3");
+
+							if (args.Parameters.Count == 3)
+							{
+								Console.WriteLine("BEEP4");
+
+								Player.SendErrorMessage($"/ab info st {setElement.name} <newTopicName>");
+								return;
+							}
+							Console.WriteLine("BEEP5");
+
+							var newTopic = Topic.GetByName(args.Parameters[3]);
+							Console.WriteLine("BEEP6 " + newTopic.dbId);
+
+							dbManager.UpdateElementTopic(setElement, newTopic.dbId);
+							Console.WriteLine("BEEP7");
+
+							setElement.dbId = newTopic.dbId;
+							Console.WriteLine("BEEP8");
+							dbManager.updateStructure();
+							Player.SendSuccessMessage($"The element {setElement.name} is now part of the topic: {newTopic.name}!");
+							return;
+						case "setMessage":
+						case "sm":
+							if (args.Parameters.Count == 2)
+							{
+								Player.SendErrorMessage("/ab info sm <elementName> <newMessage>");
+								return;
+							}
+							var messageElement = Element.GetByName(args.Parameters[2]);
+
+							if (args.Parameters.Count == 3)
+							{
+								Player.SendErrorMessage($"/ab info st {messageElement.name} <newMessage>");
+								return;
+							}
+							var newMessage = "";
+							foreach(string newM in args.Parameters)
+                            {
+								if(args.Parameters.IndexOf(newM) < 3)
+                                {
+									continue;
+                                }
+
+								newMessage += newM + " ";
+
+                            }
+							dbManager.UpdateElementMessage(messageElement, newMessage);
+							messageElement.message = newMessage;
+							Player.SendSuccessMessage($"You updated {messageElement.name}'s message!");
+							return;
+						case "list":
+						case "l":
+							if (ElementList.Count == 0)
+							{
+								Player.SendErrorMessage("There are no elements!");
+								return;
+							}
+							string elementListString = "";
+
+							foreach (Element element in ElementList)
+							{
+								if (ElementList.IndexOf(element) == ElementList.Count - 1)
+								{
+									elementListString += element.name;
+								}
+								else
+								{
+									elementListString += element.name + ", ";
+								}
+							}
+							Player.SendInfoMessage("List of elements: " + elementListString);
+							return;
+						default:
+							Player.SendErrorMessage("/ab info (add/del/list/setTopic/setMessage)");
+							return;
+
+					}
+					return;
+				case "default":
+					Player.SendErrorMessage("/ab topic (add/del/list)");
+					Player.SendErrorMessage("/ab info (add/del/list/setTopic/setMessage)");
+					return;
+			}
+			Player.SendErrorMessage("/ab topic (add/del/list)");
+			Player.SendErrorMessage("/ab info (add/del/list/setTopic/setMessage)");
+			return;
+        }
 		void aboutCommand(CommandArgs args)
         {
 			TSPlayer Player = args.Player;
 
-			if(args.Parameters.Count < 0)
+			if(args.Parameters.Count <= 0)
             {
-				Player.SendInfoMessage("Please enter something to get info about: ");
+				var allTopics = "";
+
+				foreach(Topic topic in TopicList)
+                {
+					if(TopicList.IndexOf(topic) == TopicList.Count - 1)
+                    {
+						allTopics += topic.name;
+
+
+                    }
+                    else
+                    {
+						allTopics += topic.name + ", ";
+                    }
+				}
+
+				Player.SendInfoMessage("Topics (/about <topic>): " + allTopics);
+				return;
             }
-        }
+
+			var infoAbout = args.Parameters[0];
+
+			if(Topic.GetByName(infoAbout) != null)
+            {
+				var topic = Topic.GetByName(infoAbout);
+				List<Element> elements = Topic.GetAllElementsFromTopicName(topic.name);
+				var elementsString = "";
+				foreach(Element element in elements)
+                {
+					if(elements.IndexOf(element) == elements.Count - 1)
+                    {
+						elementsString += element.name;
+                    }
+                    else
+                    {
+						elementsString += element.name + ", ";
+                    }
+                }
+				Player.SendInfoMessage($"Within the topic {topic.name}, these are the following topics you can find more about: {elementsString}");
+				return;
+			}
+
+			if (Element.GetByName(infoAbout) != null)
+			{
+				var element = Element.GetByName(infoAbout);
+
+				Player.SendInfoMessage($"{element.message}");
+				return;
+			}
+
+			return;
+		}
 
         void fightCommand(CommandArgs args)
         {
@@ -663,6 +1037,7 @@ namespace PluginTemplate
         void reloadCommand(CommandArgs args)
         {
             Config = Config.Read();
+			dbManager.InitialSync();
 
             args.Player.SendSuccessMessage("Average's Terraria plugin config has been reloaded!");
         }
