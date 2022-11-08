@@ -123,6 +123,10 @@ namespace AverageTerrariaMain
 
         public void InitialSync()
         {
+            PluginTemplate.AvMain.TopicList.Clear();
+            PluginTemplate.AvMain.ElementList.Clear();
+
+
             using (var reader = _db.QueryReader("SELECT * FROM Topics"))
             {
                 while (reader.Read())

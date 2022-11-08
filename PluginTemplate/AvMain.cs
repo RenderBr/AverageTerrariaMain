@@ -16,6 +16,9 @@ using System.IO;
 using System.Text;
 using System.Data;
 using System.Linq.Expressions;
+using Terraria.GameContent.Creative;
+using Terraria.GameContent.NetModules;
+using Terraria.Net;
 
 namespace PluginTemplate
 {
@@ -53,8 +56,9 @@ namespace PluginTemplate
         /// The version of the plugin in its current state.
         /// </summary>
         public override Version Version => new Version(1, 0, 0);
+		private DateTime Last;
 
-        public Config Config { get; private set; }
+		public Config Config { get; private set; }
 
         /// <summary>
         /// The author(s) of the plugin.
@@ -84,6 +88,7 @@ namespace PluginTemplate
             ServerApi.Hooks.GameInitialize.Register(this, onInitialize);
 			ServerApi.Hooks.ServerChat.Register(this, onChat);
 			ServerApi.Hooks.NetGreetPlayer.Register(this, onGreet);
+			ServerApi.Hooks.GameUpdate.Register(this, onUpdate);
 			TShockAPI.Hooks.RegionHooks.RegionEntered += onRegionEnter;
 			TShockAPI.Hooks.RegionHooks.RegionLeft += onRegionLeave;
 			Console.WriteLine("Average Main LOADED");
@@ -98,9 +103,81 @@ namespace PluginTemplate
       }
 
       dbManager = new Database(_db);
+			Last = DateTime.UtcNow;
+		}
+
+        private void onUpdate(EventArgs args)
+        {
+			if((DateTime.UtcNow - Last).TotalSeconds > 5)
+            {
+				if(TShock.Utils.GetActivePlayerCount() > 0)
+					foreach(var plr in TShock.Players)
+                    {
+                        if (frozenPlayers.Contains(plr))
+                        {
+							plr.Disable("Frozen");
+                        }
+                    }
+            }
+        }
+        #region journeyUnlock Command
+        public void journeyUnlockAll(CommandArgs args)
+        {
+			TSPlayer player = args.Player;
+
+			Console.WriteLine("Pre");
+
+			for (var i = 1; i < ItemID.Count; i++)
+            {
+				var amount = CreativeItemSacrificesCatalog.Instance._sacrificeCountNeededByItemId[i];
+				var response = NetCreativeUnlocksModule.SerializeItemSacrifice(i, amount);
+				Console.WriteLine(amount + "" + response.Buffer.Data);
+				NetManager.Instance.SendToClient(response, player.Index);
+
+			}
+			player.SendMessage("All items have been researched!", Color.LightBlue);
+			return;
+
+		}
+        #endregion
+
+		public void sT(CommandArgs args)
+        {
+			args.Player.SendMessage(DateTime.UtcNow + " " + DateTime.Now, Color.Orange);
+			return;
         }
 
-		public void broadcastMessage(Object source, ElapsedEventArgs args)
+        #region lastOnline Command
+
+		public void LastOnline(CommandArgs args)
+        {
+			TSPlayer player = args.Player;
+
+			if(args.Parameters.Count == 0)
+            {
+				player.SendErrorMessage("Please enter a player name. /lastonline <player>");
+				return;
+            }
+
+			if (TSPlayer.FindByNameOrID(args.Parameters[0])[0].  ) { 
+			
+			}
+
+			var lastOnlinePlayer = TShock.UserAccounts.GetUserAccountByName(args.Parameters[0]);
+
+			if(lastOnlinePlayer == null)
+            {
+				player.SendErrorMessage("Please enter a valid player. /lastonline <player>");
+				return;
+			}
+
+			DateTime lastAccessed = DateTime.Parse(lastOnlinePlayer.LastAccessed).ToLocalTime();
+			player.SendInfoMessage(lastOnlinePlayer.Name + " was last online " + lastAccessed.Subtract(DateTime.Now).TotalHours + " hours ago (" + lastAccessed + ")");
+			return;
+        }
+
+        #endregion
+        public void broadcastMessage(Object source, ElapsedEventArgs args)
         {
 			Random rnd = new Random();
 			TSPlayer.All.SendMessage("[" + Config.serverName + "] " + Config.broadcastMessages[rnd.Next(0, Config.broadcastMessages.Count)], Microsoft.Xna.Framework.Color.Aquamarine);
@@ -148,14 +225,13 @@ namespace PluginTemplate
             if (frozenPlayers.Contains(FrozenPlayer)){
 				frozenPlayers.Remove(FrozenPlayer);
 				Player.SendSuccessMessage("You have un-frozen " + FrozenPlayer.Name);
-				Player.SetBuff(BuffID.Frozen, 0, true);
 				return;
             }
             else
             {
 				frozenPlayers.Add(FrozenPlayer);
 				Player.SendSuccessMessage("You have frozen " + FrozenPlayer.Name);
-				Player.SetBuff(BuffID.Frozen, -1, true);
+				FrozenPlayer.Disable($"{FrozenPlayer} has been frozen by {Player}");
 				return;
 			}
 			return;
@@ -249,6 +325,7 @@ namespace PluginTemplate
         {
             Config = Config.Read();
             Commands.ChatCommands.Add(new Command("av.info", infoCommand, "info"));
+			Commands.ChatCommands.Add(new Command("av.lastonline", LastOnline, "lastonline", "lo"));
 			Commands.ChatCommands.Add(new Command("av.vote", VoteCommand, "tvote", "tv"));
 			Commands.ChatCommands.Add(new Command("av.boss", fightCommand, "boss"));
 			Commands.ChatCommands.Add(new Command("av.apply", applyStaffCommand, "apply", "applyforstaff"));
@@ -263,6 +340,9 @@ namespace PluginTemplate
 			Commands.ChatCommands.Add(new Command("av.boss", killBosses, "killbosses", "kb"));
 			Commands.ChatCommands.Add(new Command("av.admin", adminAbout, "ab", "adminab", "adminabout"));
 			Commands.ChatCommands.Add(new Command("av.helper", Freeze, "f", "freeze"));
+			Commands.ChatCommands.Add(new Command("av.jmunlock", journeyUnlockAll, "researchall", "jmunlock"));
+			Commands.ChatCommands.Add(new Command("av.servertime", sT, "st", "servert"));
+
 
 			Commands.ChatCommands.Add(new Command("av.info", aboutCommand, "about"));
 
