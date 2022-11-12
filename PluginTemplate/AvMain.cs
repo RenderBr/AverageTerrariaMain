@@ -159,8 +159,9 @@ namespace PluginTemplate
 				return;
             }
 
-			if (TSPlayer.FindByNameOrID(args.Parameters[0])[0].  ) { 
-			
+			if (TSPlayer.FindByNameOrID(args.Parameters[0])[0].IsLoggedIn == true  ) {
+				player.SendInfoMessage(args.Parameters[0] + " is online now!");
+				return;
 			}
 
 			var lastOnlinePlayer = TShock.UserAccounts.GetUserAccountByName(args.Parameters[0]);
