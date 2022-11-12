@@ -330,7 +330,7 @@ namespace PluginTemplate
 			Commands.ChatCommands.Add(new Command("av.boss", fightCommand, "boss"));
 			Commands.ChatCommands.Add(new Command("av.apply", applyStaffCommand, "apply", "applyforstaff"));
 			Commands.ChatCommands.Add(new Command("av.pvp", tpToPvpCommand, "pvparena", "parena"));
-			Commands.ChatCommands.Add(new Command("av.boss", tpToPvpCommand, "bossarena", "arena", "barena"));
+			Commands.ChatCommands.Add(new Command("av.boss", tpToArena, "bossarena", "arena", "barena"));
 			Commands.ChatCommands.Add(new Command("av.discord", discordInvite, "discord"));
             Commands.ChatCommands.Add(new Command("av.admin", reloadCommand, "avreload"));
 			Commands.ChatCommands.Add(new Command("av.stuck", stuckCommand, "stuck", "imstuck"));
@@ -367,7 +367,8 @@ namespace PluginTemplate
 			dbManager.InitialSync();
 		}
 
-		void onGreet(GreetPlayerEventArgs args)
+        #region names manager
+        void onGreet(GreetPlayerEventArgs args)
         {
 			var ply = TShock.Players[args.Who];
 			Random rand = new Random();
@@ -377,6 +378,10 @@ namespace PluginTemplate
 				NetMessage.SendData((int)PacketTypes.PlayerInfo, -1, -1, new Terraria.Localization.NetworkText(ply.TPlayer.name, Terraria.Localization.NetworkText.Mode.Literal), args.Who, 0, 0, 0, 0);
 				ply.SendMessage("Your name has been temporarily changed to " + ply.TPlayer.name + " because it had non-English characters! Change it to something else with /nick (new name)!", Color.Gold);
 			}
+			if(ply.Name.ToLower().Contains("nigger") | ply.Name.ToLower().Contains("nigga") | ply.Name.ToLower().Contains("niga"))
+            {
+				TShock.Bans.InsertBan("acc:" + ply.Name, "offensive username", "AutoMod", DateTime.UtcNow, DateTime.UtcNow.AddDays(100));
+            }
 
 
 			Players.Add(new AvPlayer(ply.Name));
@@ -387,8 +392,10 @@ namespace PluginTemplate
 
 
 		}
+        #endregion
 
-		void killBosses(CommandArgs args)
+        #region user utilities
+        void killBosses(CommandArgs args)
         {
 			var user = args.Player;
 			int kills = 0;
@@ -421,8 +428,9 @@ namespace PluginTemplate
 				args.Player.SendInfoMessage("It's not currently raining?");
             }
         }
+        #endregion
 
-		void triggerCg(CommandArgs arsg)
+        void triggerCg(CommandArgs arsg)
         {
 			chatGames(null, null);
         }
@@ -430,7 +438,8 @@ namespace PluginTemplate
 		void VoteCommand(CommandArgs args)
         {
 			args.Player.SendMessage("Vote for our server on Terraria-servers.com! Fill in your name as it is in-game, after that, type /reward to receive your playtime!", Color.Aquamarine);
-        }
+			return;
+		}
 
 		void tpToAverage(CommandArgs args)
         {
@@ -476,6 +485,7 @@ namespace PluginTemplate
 		void applyStaffCommand(CommandArgs args)
         {
 			args.Player.SendInfoMessage("Head to averageterraria.lol, register an account, and fill out the staff template under the 'Staff Applications' tag! Thanks for considering applying :)");
+			return;
 		}
 
 		void tpToPvpCommand(CommandArgs args)
@@ -485,6 +495,7 @@ namespace PluginTemplate
 
 			player.Teleport(warp.Position.X * 16, warp.Position.Y * 16);
 			args.Player.SendSuccessMessage("You have been sent to the PvP arena!");
+			return;
 		}
 
 		void tpToArena(CommandArgs args)
@@ -494,6 +505,7 @@ namespace PluginTemplate
 
 			player.Teleport(warp.Position.X * 16, warp.Position.Y * 16);
 			args.Player.SendSuccessMessage("You have been sent to the boss arena!");
+			return;
 		}
 
 		//coming soon-ish? if i can figure out how to implement

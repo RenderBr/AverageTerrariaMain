@@ -34,12 +34,13 @@ namespace AverageTerrariaMain
 			{
 				Config config = new Config();
 
-				if (File.Exists(filepath))
+				if (!File.Exists(filepath))
 				{
-					config = JsonConvert.DeserializeObject<Config>(File.ReadAllText(filepath));
-				}
+					File.WriteAllText(filepath, JsonConvert.SerializeObject(config, Formatting.Indented));
+                }
+				config = JsonConvert.DeserializeObject<Config>(File.ReadAllText(filepath));
 
-				File.WriteAllText(filepath, JsonConvert.SerializeObject(config, Formatting.Indented));
+
 				return config;
 			}
 			catch (Exception ex)
