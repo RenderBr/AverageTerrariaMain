@@ -159,7 +159,7 @@ namespace PluginTemplate
 				return;
             }
 
-			if (TSPlayer.FindByNameOrID(args.Parameters[0])[0].IsLoggedIn == true  ) {
+			if (TSPlayer.FindByNameOrID(args.Parameters[0]).Count > 0) {
 				player.SendInfoMessage(args.Parameters[0] + " is online now!");
 				return;
 			}
@@ -246,27 +246,28 @@ namespace PluginTemplate
 			string mathProblem = null;
 			string wordProblem = null;
 			int answer = 0;
-
+			DataTable eval = new DataTable();
+			
 			switch (gamemode)
             {
 				case 1:
 					Oper = "-";
-					mathProblem = rand.Next(1, 100) + Oper + rand.Next(1, 150);
-					answer = int.Parse(Oper);
+					mathProblem = "" + rand.Next(1, 100) + Oper + rand.Next(1, 150);
+					answer = (int)eval.Compute(mathProblem,"");
 					cg.answer = answer;
-
+					
 					break;
 				case 2:
 					Oper = "+";
 					mathProblem = rand.Next(1, 100) + Oper + rand.Next(1, 150);
-					answer = int.Parse(Oper);
+					answer = (int)eval.Compute(mathProblem, "");
 					cg.answer = answer;
 
 					break;
 				case 3:
 					Oper = "*";
 					mathProblem = rand.Next(1, 12) + Oper + rand.Next(1, 12);
-					answer = int.Parse(Oper);
+					answer = (int)eval.Compute(mathProblem, "");
 					cg.answer = answer;
 					break;
 				case 4:
@@ -275,7 +276,7 @@ namespace PluginTemplate
 				default:
 					Oper= "+";
 					mathProblem = rand.Next(1, 100) + Oper + rand.Next(1, 150);
-					answer = int.Parse(Oper);
+					answer = (int)eval.Compute(mathProblem, "");
 					cg.answer = answer;
 					break;
 			}
