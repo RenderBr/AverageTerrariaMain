@@ -33,49 +33,35 @@ namespace PluginTemplate
 
         public static DonatedItems _donatedItems = new DonatedItems();
         public static Clans _clans = new Clans();
+
+        #region restaurant variables
         public static bool restaurantOpen = false;
         public static string restaurantName = "The Chef's Diner";
 
         public static List<Tuple<TSPlayer, string>> orders = new List<Tuple<TSPlayer, string>>();
         public static List<TSPlayer> chefs = new List<TSPlayer>();
         public static List<TSPlayer> chefApplicants = new List<TSPlayer>();
+        #endregion
 
-
-        /// <summary>
-        /// The name of the plugin.
-        /// </summary>
+        #region anti-rush variables
+        public int totalDays;
+        public bool canSummonWOF = false;
+        public bool canSummonEOC = false;
+        public bool canSummonEvilBoss = false;
+        public bool canSummonSkeletron = false;
+        #endregion
         public override string Name => "Average's Survival";
-
-        /// <summary>
-        /// The version of the plugin in its current state.
-        /// </summary>
         public override Version Version => new Version(1, 0, 0);
 
         public Config Config { get; private set; }
-
-        /// <summary>
-        /// The author(s) of the plugin.
-        /// </summary>
+ 
         public override string Author => "Average";
 
-        /// <summary>
-        /// A short, one-line, description of the plugin's purpose.
-        /// </summary>
         public override string Description => "Provides some functionality for Average's Survival server.";
-
-        /// <summary>
-        /// The plugin's constructor
-        /// Set your plugin's order (optional) and any other constructor logic here
-        /// </summary>
         public AvMain(Terraria.Main game) : base(game)
         {
             Order = 1;
         }
-
-        /// <summary>
-        /// Performs plugin initialization logic.
-        /// Add your hooks, config file read/writes, etc here
-        /// </summary>
         public override void Initialize()
         {
             ServerApi.Hooks.GameInitialize.Register(this, onInitialize);
@@ -88,11 +74,9 @@ namespace PluginTemplate
             TShockAPI.Hooks.PlayerHooks.PlayerPostLogin += PlayerLogin;
             TShockAPI.GetDataHandlers.KillMe += KillMeEvent;
             TShockAPI.GetDataHandlers.TileEdit += onTileEdit;
-            TShockAPI.GetDataHandlers.NPCStrike += strikeNPC;
             TShockAPI.GetDataHandlers.PlayerDamage += onPlayerDamage;
 			TShockAPI.Hooks.RegionHooks.RegionEntered += onRegionEnter;
 			TShockAPI.Hooks.RegionHooks.RegionLeft += onRegionLeave;
-			Console.WriteLine("Average Survival LOADED");
 
             switch (TShock.Config.Settings.StorageType.ToLower())
             {
@@ -324,144 +308,6 @@ namespace PluginTemplate
             }
         }
 
-        private List<int> ItemList
-        {
-            get
-            {
-                List<int> list = new List<int>();
-                var items = typeof(Terraria.ID.ItemID).GetFields();
-                for (int i = 0; i < items.Length; i++)
-                {
-                    list.Add((int)items[i].GetValue(items[i]));
-                }
-                list.Sort();
-                return list;
-            }
-        }
-
-        #region GenChests Command
-        private void DoChests(CommandArgs args)
-        {
-            if (args.Parameters.Count == 0 || args.Parameters.Count > 2)
-            {
-                args.Player.SendInfoMessage("Usage: /genchests <amount> [gen mode: default/easy/all]");
-            }
-            int empty = 0;
-            int tmpEmpty = 0;
-            int chests = 0;
-            int maxChests = 1000;
-
-            string setting = "default";
-            if (args.Parameters.Count > 1)
-            {
-                setting = args.Parameters[1];
-            }
-            const int maxtries = 100000;
-            Int32.TryParse(args.Parameters[0], out chests);
-            const int threshold = 100;
-                for (int x = 0; x < maxChests; x++)
-                {
-                    if (Main.chest[x] != null)
-                    {
-                        tmpEmpty++;
-                        bool found = false;
-                        foreach (Item itm in Main.chest[x].item)
-                            if (itm.netID != 0)
-                                found = true;
-                        if (found == false)
-                        {
-                            empty++;
-                            //      TShock.Utils.Broadcast(string.Format("Found chest {0} empty at x {1} y {2}", x, Main.chest[x].x,
-                            //                                           Main.chest[x].y));
-
-                            // destroying
-                            WorldGen.KillTile(Main.chest[x].x, Main.chest[x].y, false, false, false);
-                            Main.chest[x] = null;
-
-                        }
-
-                    }
-
-                }
-                args.Player.SendSuccessMessage("Uprooted {0} empty out of {1} chests.", empty, tmpEmpty);
-            
-            if (chests + tmpEmpty + threshold > maxChests)
-                chests = maxChests - tmpEmpty - threshold;
-            if (chests > 0)
-            {
-                int chestcount = 0;
-                chestcount = tmpEmpty;
-                int tries = 0;
-                int newcount = 0;
-                while (newcount < chests)
-                {
-                    int contain;
-                    if (setting == "default")
-                    {
-                        // Moved item list into a separate .txt file
-                        int[] itemID = Config.DefaultChestIDs;
-                        contain = itemID[WorldGen.genRand.Next(0, itemID.Length)];
-                    }
-                    else if (setting == "all")
-                    {
-                        // Updated item list to 1.2.4.1
-                        contain = WorldGen.genRand.Next(ItemList[0], ItemList.Count + 1);
-                    }
-                    else if (setting == "easy")
-                    {
-                        contain = WorldGen.genRand.Next(-24, 364);
-                    }
-                    else
-                    {
-                        args.Player.SendWarningMessage("Warning! Typo in second argument: {0}", args.Parameters[1]);
-                        return;
-                    }
-                    int tryX = WorldGen.genRand.Next(20, Main.maxTilesX - 20);
-                    int tryY = WorldGen.genRand.Next((int)Main.worldSurface, Main.maxTilesY - 200);
-                    while (!Main.tile[tryX, tryY].active())
-                    {
-                        tryY++;
-                    }
-                    tryY--;
-                    WorldGen.KillTile(tryX, tryY, false, false, false);
-                    WorldGen.KillTile(tryX + 1, tryY, false, false, false);
-                    WorldGen.KillTile(tryX, tryY + 1, false, false, false);
-                    WorldGen.KillTile(tryX + 1, tryY, false, false, false);
-
-                    if (WorldGen.AddBuriedChest(tryX, tryY, contain, true, 1))
-                    {
-                        chestcount++;
-                        newcount++;
-
-                            StringBuilder items = new StringBuilder();
-                            Terraria.Chest c = Main.chest[0];
-                            if (c != null)
-                            {
-                                for (int j = 0; j < 40; j++)
-                                {
-                                    items.Append(c.item[j].netID + "," + c.item[j].stack + "," + c.item[j].prefix);
-                                    if (j != 39)
-                                    {
-                                        items.Append(",");
-                                    }
-                                }
-                                items.Clear();
-                                Main.chest[0] = null;
-                            }
-                        
-
-                    }
-                    if (tries + 1 >= maxtries)
-                        break;
-
-                    tries++;
-                }
-                args.Player.SendSuccessMessage("Generated {0} new chests - {1} total", newcount, chestcount);
-                InformPlayers();
-            }
-        }
-        #endregion
-
         #region InformPlayers
         public static void InformPlayers(bool hard = false)
 		{
@@ -521,10 +367,9 @@ namespace PluginTemplate
 
         }
 
-        //boss modifiers, no longer used
         void onBossSpawn(NpcSpawnEventArgs args)
         {
-            //NPC npc = Main.npc[args.NpcId];
+            NPC npc = Main.npc[args.NpcId];
 
             //if(npc.netID == NPCID.EyeofCthulhu)
             //{
@@ -556,6 +401,51 @@ namespace PluginTemplate
             //    //update on client side immediately
             //    args.Handled = true;
             //}
+
+
+            //anti rush
+            if(canSummonEOC == true)
+            {
+
+            }
+            else if(canSummonEOC == false && npc.netID == NPCID.EyeofCthulhu)
+            {
+                NetMessage.SendData((int)PacketTypes.NpcUpdate, -1, -1, NetworkText.Empty, args.NpcId);
+                TSPlayer.All.SendErrorMessage("Due to anti-rush, the Eye of Cthulhu can not be summoned yet!");
+            }
+
+            //anti rush
+            if (canSummonEvilBoss == true)
+            {
+
+            }
+            else if (canSummonEvilBoss == false && (npc.netID == NPCID.BrainofCthulhu || npc.netID == NPCID.EaterofWorldsBody))
+            {
+                NetMessage.SendData((int)PacketTypes.NpcUpdate, -1, -1, NetworkText.Empty, args.NpcId);
+                TSPlayer.All.SendErrorMessage("Due to anti-rush, the evil boss can not be summoned yet!");
+            }
+
+            if (canSummonSkeletron == true)
+            {
+
+            }
+            else if (canSummonSkeletron == false && npc.netID == NPCID.SkeletronHead)
+            {
+                NetMessage.SendData((int)PacketTypes.NpcUpdate, -1, -1, NetworkText.Empty, args.NpcId);
+                TSPlayer.All.SendErrorMessage("Due to anti-rush, Skeletron can not be summoned yet!");
+            }
+
+
+            if (canSummonWOF == true)
+            {
+
+            }
+            else if (canSummonWOF == false && npc.netID == NPCID.WallofFlesh)
+            {
+                NetMessage.SendData((int)PacketTypes.NpcUpdate, -1, -1, NetworkText.Empty, args.NpcId);
+                TSPlayer.All.SendErrorMessage("Due to anti-rush, the Wall of Flesh can not be summoned yet!");
+            }
+
         }
 
         void onLeave(LeaveEventArgs args)
@@ -1000,6 +890,7 @@ namespace PluginTemplate
         void onInitialize(EventArgs e)
         {
             Config = Config.Read();
+            totalDays = (int)DateTime.UtcNow.Subtract(Config.startDate).TotalDays;
             Commands.ChatCommands.Add(new Command("av.info", infoCommand, "info"));
 			Commands.ChatCommands.Add(new Command("av.vote", VoteCommand, "tvote", "tv"));
 			Commands.ChatCommands.Add(new Command("av.apply", applyStaffCommand, "apply", "applyforstaff"));
@@ -1007,8 +898,8 @@ namespace PluginTemplate
             Commands.ChatCommands.Add(new Command("av.reload", reloadCommand, "avreload"));
             Commands.ChatCommands.Add(new Command("av.bounty", Bounty, "bounty"));
             Commands.ChatCommands.Add(new Command("av.bounty", bossProgression, "bosses", "progression", "far"));
-            Commands.ChatCommands.Add(new Command("av.chests", DoChests, "chests", "genChests"));
             Commands.ChatCommands.Add(new Command("av.donate", Donate, "donate", "ditem"));
+            Commands.ChatCommands.Add(new Command("av.donate", Sell, "sell", "itemtodollas", "convitem"));
             Commands.ChatCommands.Add(new Command("clan.chat", ClanChat, "c", "ditem"));
             Commands.ChatCommands.Add(new Command("clan.list", ClansList, "clist", "clans"));
             Commands.ChatCommands.Add(new Command("clan.use", Clan, "clan"));
@@ -1033,36 +924,30 @@ namespace PluginTemplate
 			bcTimer.Enabled = true;
 
             dbManager.InitialSync();
-
+            AntiRush();
 
         }
-        #region Donate Command
+        #region Donate & ItemToDollas Command
         void Donate(CommandArgs args)
         {
             var avp = Players.GetByUsername(args.Player.Name);
 
             if (avp.donateBeg.Enabled == true)
             {
-                if(args.Player.HasPermission("cooldownbypass"))
-                {
-
-                }
-                else
+                if(args.Player.HasPermission("cooldownbypass") == false)
                 {
                     args.Player.SendMessage("You must wait to use this command again!", Color.IndianRed);
                     return;
                 }
-
-
             }
 
-            Players.GetByUsername(args.Player.Name).donateBeg.Start();
             Item item = args.Player.SelectedItem;
             if(item == null)
             {
                 args.Player.SendMessage("You must be holding an item!", Color.IndianRed);
                 return;
             }
+
             _donatedItems.donations.Add(new DonatedItem(item.netID, item.stack, item.prefix));
             var e = 0;
 
@@ -1078,23 +963,55 @@ namespace PluginTemplate
             NetMessage.SendData((int)PacketTypes.PlayerSlot, -1, -1, new NetworkText(Main.player[args.Player.Index].inventory[e].Name, NetworkText.Mode.Literal), args.Player.Index, e, 0);
             NetMessage.SendData((int)PacketTypes.PlayerSlot, args.Player.Index, -1, new NetworkText(Main.player[args.Player.Index].inventory[e].Name, NetworkText.Mode.Literal), args.Player.Index, e, 0);
 
-            var dolla = item.GetStoreValue() * item.stack / 5000;
+           
+            args.Player.SendMessage("You have inserted a " + item.Name + " into the donation pool. Other players can receive this with /beg! What a charitable citizen!", Color.LightGreen);
+            dbManager.InsertItem(new DonatedItem(item.netID, item.stack, item.prefix));
+            avp.donateBeg.Start();
+            return;
+        }
 
-            if(dolla == 0)
+        void Sell(CommandArgs args)
+        {
+            var avp = Players.GetByUsername(args.Player.Name);
+   
+            Item item = args.Player.SelectedItem;
+            if (item == null)
+            {
+                args.Player.SendMessage("You must be holding an item!", Color.IndianRed);
+                return;
+            }
+
+            var e = 0;
+
+            foreach (Item i in Main.player[args.Player.Index].inventory)
+            {
+                if (i == item)
+                {
+                    break;
+                }
+                e++;
+            }
+            args.Player.TPlayer.inventory[e] = new Item();
+            NetMessage.SendData((int)PacketTypes.PlayerSlot, -1, -1, new NetworkText(Main.player[args.Player.Index].inventory[e].Name, NetworkText.Mode.Literal), args.Player.Index, e, 0);
+            NetMessage.SendData((int)PacketTypes.PlayerSlot, args.Player.Index, -1, new NetworkText(Main.player[args.Player.Index].inventory[e].Name, NetworkText.Mode.Literal), args.Player.Index, e, 0);
+
+
+            var dolla = item.GetStoreValue() * item.stack / 5000 - (item.stack*2);
+
+            if (dolla == 0)
             {
                 dolla++;
             }
 
             TimeRanks.TimeRanks.Players.GetByUsername(args.Player.Name).totalCurrency += dolla;
-            args.Player.SendMessage("You have inserted a " + item.Name + " into the donation pool and received " + dolla + " dollas!", Color.LightGreen);
-            dbManager.InsertItem(new DonatedItem(item.netID, item.stack, item.prefix));
-            avp.donateBeg.Start();
+            args.Player.SendMessage($"You have sold a {item.Name} and received {dolla} {TimeRanks.TimeRanks.config.currencyNamePlural}!", Color.LightGreen);
             return;
         }
         #endregion
 
-        #region Clans List Command
-        void ClansList(CommandArgs args)
+
+    #region Clans List Command
+    void ClansList(CommandArgs args)
         {
             var page = 1;
             var i = 0;
@@ -1282,8 +1199,91 @@ namespace PluginTemplate
             
         }
 
-		void onGreet(GreetPlayerEventArgs args)
+        void banItem(int item)
         {
+            TShock.ItemBans.DataModel.AddNewBan(EnglishLanguage.GetItemNameById(item));
+        }
+
+        void UnbanItem(int item)
+        {
+            TShock.ItemBans.DataModel.RemoveBan(EnglishLanguage.GetItemNameById(item));
+        }
+
+        void AntiRush()
+        {
+            // reset has only been around for less than a day
+            if (totalDays < 1)
+            {
+                banItem(ItemID.SuspiciousLookingEye);
+                banItem(ItemID.WormFood);
+                banItem(ItemID.BloodySpine);
+                banItem(ItemID.GuideVoodooDoll);
+                banItem(4988);
+                banItem(ItemID.MechanicalEye);
+                banItem(ItemID.MechanicalWorm);
+                banItem(ItemID.MechanicalSkull);
+                banItem(ItemID.LihzahrdPowerCell);
+                banItem(ItemID.CelestialSigil);
+
+
+            }
+            if (totalDays > 0)
+            {
+                UnbanItem(ItemID.SuspiciousLookingEye);
+                canSummonEOC = true;
+            }
+            if (totalDays >= 2)
+            {
+                UnbanItem(ItemID.WormFood);
+                UnbanItem(ItemID.BloodySpine);
+                canSummonEvilBoss = true;
+
+            }
+            if (totalDays >= 3)
+            {
+                canSummonSkeletron = true;
+
+            }
+            if (totalDays >= 5)
+            {
+                canSummonWOF = true;
+                UnbanItem(ItemID.GuideVoodooDoll);
+
+
+            }
+            if (totalDays >= 7)
+            {
+                UnbanItem(ItemID.MechanicalEye);
+
+            }
+
+            if (totalDays >= 9)
+            {
+                UnbanItem(ItemID.MechanicalWorm);
+
+            }
+
+            if (totalDays >= 10)
+            {
+                UnbanItem(ItemID.MechanicalSkull);
+
+            }
+            if (totalDays >= 12)
+            {
+                UnbanItem(ItemID.LihzahrdPowerCell);
+
+            }
+            if (totalDays >= 14)
+            {
+                UnbanItem(ItemID.CelestialSigil);
+
+            }
+        }
+
+
+        void onGreet(GreetPlayerEventArgs args)
+        {
+            AntiRush();
 			var ply = TShock.Players[args.Who];
 
 			Players.Add(new AvPlayer(ply.Name));
@@ -1475,13 +1475,6 @@ namespace PluginTemplate
             //        }
             //    }
             //}
-
-
-        }
-
-        void strikeNPC(object sender, GetDataHandlers.NPCStrikeEventArgs args)
-        {
-
 
 
         }
@@ -1751,11 +1744,19 @@ namespace PluginTemplate
                     player.SendMessage("/c <message> - sends a message to the private clan chat", Color.GreenYellow);
                     return;
                 case "promote":
+                    if (args.Parameters.Count == 1)
+                    {
+                        args.Player.SendErrorMessage("Enter a member name! Ex. /clan promote SomeGuy");
+                        return;
+                    }
+
                     var canPromoteToMember = false;
                     var canPromoteToAdmin = false;
                     var userToPromote = args.Parameters[1];
+                    var promoted = _clans.FindClan(Players.GetByUsername(userToPromote).clan).members.FindMember(userToPromote);
+                    var user = _clans.FindClan(Players.GetByUsername(player.Name).clan).members.FindMember(player.Name);
 
-                    if (_clans.FindClan(Players.GetByUsername(player.Name).clan).members.FindMember(player.Name).role < 2)
+                    if (user.role < 2)
                     {
                         args.Player.SendErrorMessage("You do not have permission to promote people in your clan!");
                         return;
@@ -1763,39 +1764,44 @@ namespace PluginTemplate
                     else
                     {
                         canPromoteToMember = true;
-
-
                     }
-                    if (_clans.FindClan(Players.GetByUsername(player.Name).clan).members.FindMember(player.Name).role == 3)
+
+                    if (user.role >= 3)
                     {
                         canPromoteToMember = true;
                         canPromoteToAdmin = true;
                     }
-                    if (args.Parameters.Count == 1)
+
+                    if (promoted.clanName == user.clanName && promoted.role < 2)
                     {
-                        args.Player.SendErrorMessage("Enter a member name! Ex. /clan promote SomeGuy");
-                        return;
-                    }
-                    if (_clans.FindClan(Players.GetByUsername(userToPromote).clan).members.FindMember(userToPromote).memberName != "" && _clans.FindClan(Players.GetByUsername(userToPromote).clan).members.FindMember(userToPromote).role < 2)
-                    {
-                        if (canPromoteToMember && _clans.FindClan(Players.GetByUsername(userToPromote).clan).members.FindMember(userToPromote).role == 0)
+                        if (canPromoteToMember && promoted.role == 0)
                         {
-                            _clans.FindClan(Players.GetByUsername(userToPromote).clan).members.FindMember(userToPromote).role = 1;
-                            dbManager.UpdateMemberRole(userToPromote, _clans.FindClan(Players.GetByUsername(userToPromote).clan).members.FindMember(userToPromote).role);
+                            Clans.PromoteUser(userToPromote, _clans.FindClan(Players.GetByUsername(userToPromote).clan));
+                            promoted.role = 1;
+                            dbManager.UpdateMemberRole(userToPromote, promoted.role);
                             foreach (ClanMember member in _clans.FindClan(Players.GetByUsername(userToPromote).clan).members.members)
                             {
-                                TSPlayer.FindByNameOrID(userToPromote)[0].SendMessage($"{userToPromote} has been promoted to Member!", Color.Green);
+                                TSPlayer Cplayer = TSPlayer.FindByNameOrID(member.memberName)[0];
+                                if (Cplayer.IsLoggedIn == true)
+                                {
+                                    Cplayer.SendMessage($"{userToPromote} has been promoted to Member!", Color.Green);
+                                }
                             }
-                            return;
                         }
 
-                        if (canPromoteToAdmin && _clans.FindClan(Players.GetByUsername(userToPromote).clan).members.FindMember(userToPromote).role == 1)
+
+                        if (canPromoteToAdmin && promoted.role == 1)
                         {
-                            _clans.FindClan(Players.GetByUsername(userToPromote).clan).members.FindMember(userToPromote).role = 2;
-                            dbManager.UpdateMemberRole(userToPromote, _clans.FindClan(Players.GetByUsername(userToPromote).clan).members.FindMember(userToPromote).role);
+                            Clans.PromoteUser(userToPromote, _clans.FindClan(Players.GetByUsername(userToPromote).clan));
+                            promoted.role = 2;
+                            dbManager.UpdateMemberRole(userToPromote, promoted.role);
                             foreach (ClanMember member in _clans.FindClan(Players.GetByUsername(userToPromote).clan).members.members)
                             {
-                                TSPlayer.FindByNameOrID(userToPromote)[0].SendMessage($"{userToPromote} has been promoted to Admin!", Color.Green);
+                                TSPlayer Cplayer = TSPlayer.FindByNameOrID(member.memberName)[0];
+                                if(Cplayer.IsLoggedIn == true)
+                                {
+                                    Cplayer.SendMessage($"{userToPromote} has been promoted to Admin!", Color.Green);
+                                }
                             }
                         }
                     }
@@ -1818,13 +1824,13 @@ namespace PluginTemplate
                         args.Player.SendErrorMessage("You are already in a clan!");
                         return;
                     }
-                    if(TimeRanks.TimeRanks.Players.GetByUsername(args.Player.Name).totalCurrency >= 1500)
+                    if(TimeRanks.TimeRanks.Players.GetByUsername(args.Player.Name).totalCurrency >= 500)
                     {
-                        TimeRanks.TimeRanks.Players.GetByUsername(args.Player.Name).totalCurrency -= 1500;
+                        TimeRanks.TimeRanks.Players.GetByUsername(args.Player.Name).totalCurrency -= 500;
                     }
                     else
                     {
-                        args.Player.SendMessage("You do not have the 1500 " + TimeRanks.TimeRanks.config.currencyNamePlural + " required to create a clan! Try again when you have enough.", Color.Red);
+                        args.Player.SendMessage("You do not have the 500 " + TimeRanks.TimeRanks.config.currencyNamePlural + " required to create a clan! Try again when you have enough.", Color.Red);
                         return;
                     }
 
@@ -1845,7 +1851,7 @@ namespace PluginTemplate
                     dbManager.InsertClan(clan);
 
                     args.Player.SendMessage($"Your clan {clanName} has been created!", Color.LightGreen);
-                    args.Player.SendMessage($"-1500 {TimeRanks.TimeRanks.config.currencyNamePlural} for creating a clan!", Color.Red);
+                    args.Player.SendMessage($"-500 {TimeRanks.TimeRanks.config.currencyNamePlural} for creating a clan!", Color.Red);
  
                     return;
                 case "region":
@@ -1969,13 +1975,13 @@ namespace PluginTemplate
                     return;
                 case "invite": // /clan invite <player>s
                     var invc = _clans.FindClan(Players.GetByUsername(args.Player.Name).clan);
-                    var user = args.Player;
-                    var role = invc.members.FindMember(user.Name).role;
+                    TSPlayer userA = args.Player;
+                    var role = invc.members.FindMember(userA.Name).role;
                     var invitedPlayer = args.Parameters[1];
 
                     if (invc != null)
                     {
-                        if(user.Account != null)
+                        if(userA.Account != null)
                         {
                             //0 = rookie
                             //1 = member
@@ -2120,7 +2126,7 @@ namespace PluginTemplate
 
 		void onChat(ServerChatEventArgs args)
         {
-
+           
             
         }
 

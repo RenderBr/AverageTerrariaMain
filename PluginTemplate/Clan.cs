@@ -94,6 +94,12 @@ namespace AverageTerrariaSurvival
             return tempclan;
         }
 
+        public static void PromoteUser(string ply, Clan clan)
+        {
+            clan.members.FindMember(ply).role++;
+            return;
+        }
+
     }
 
 }
