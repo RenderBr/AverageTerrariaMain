@@ -996,7 +996,7 @@ namespace PluginTemplate
             NetMessage.SendData((int)PacketTypes.PlayerSlot, args.Player.Index, -1, new NetworkText(Main.player[args.Player.Index].inventory[e].Name, NetworkText.Mode.Literal), args.Player.Index, e, 0);
 
 
-            var dolla = item.GetStoreValue() * item.stack / 5000 - (item.stack*2);
+            var dolla = item.GetStoreValue() * item.stack / 5000;
 
             if (dolla == 0)
             {
