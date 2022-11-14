@@ -40,7 +40,6 @@ namespace AverageTerrariaMain
                 }
 				config = JsonConvert.DeserializeObject<Config>(File.ReadAllText(filepath));
 
-
 				return config;
 			}
 			catch (Exception ex)

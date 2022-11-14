@@ -809,14 +809,14 @@ namespace PluginTemplate
             {
 				if(args.Text == cg.answer.ToString())
                 {
-					TimeRanks.TimeRanks.Players.GetByUsername(player[0].Name).totaltime += 1500;
+					RankSystem.PlayerManager.getPlayer(player[0].Name).totaltime += 1500;
 					TSPlayer.All.SendMessage("[Chat Games] " + player[0].Name + " won the chat game (answer: " + cg.answer.ToString() + ") and has won 25 minutes of rank playtime! Whoot!", Color.Gold);
 					cg.Occuring = false;
 					cg.answer = 0;
                 }
 				if(args.Text == cg.wordAnswer.ToString())
                 {
-					TimeRanks.TimeRanks.Players.GetByUsername(player[0].Name).totaltime += 1500;
+					RankSystem.PlayerManager.getPlayer(player[0].Name).totaltime += 1500;
 					TSPlayer.All.SendMessage("[Chat Games] " + player[0].Name + " won the chat game (answer: " + cg.wordAnswer.ToString() + ") and has won 25 minutes of rank playtime! Whoot!", Color.Gold);
 					cg.Occuring = false;
 					cg.wordAnswer = null;
