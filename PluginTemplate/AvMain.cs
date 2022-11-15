@@ -1172,7 +1172,7 @@ namespace PluginTemplate
             NetMessage.SendData((int)PacketTypes.PlayerSlot, args.Player.Index, -1, new NetworkText(Main.player[args.Player.Index].inventory[e].Name, NetworkText.Mode.Literal), args.Player.Index, e, 0);
 
 
-            var dolla = (item.GetStoreValue() * 5000)/ item.stack;
+            var dolla = (item.GetStoreValue() / 5000)* item.stack;
 
             if (dolla == 0)
             {
