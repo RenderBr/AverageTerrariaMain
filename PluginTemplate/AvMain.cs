@@ -128,7 +128,7 @@ namespace PluginTemplate
 
             if (Players.GetByUsername(args.Player.Name).isBountied == true)
             {
-                TimeRanks.TimeRanks.Players.GetByUsername(enemyPlayer.Name).totalCurrency += Players.GetByUsername(args.Player.Name).bountyPrice;
+                SimpleEcon.PlayerManager.GetPlayer(enemyPlayer.Name).balance += Players.GetByUsername(args.Player.Name).bountyPrice;
                 Players.GetByUsername(args.Player.Name).isBountied = false;
                 TSPlayer.All.SendMessage(enemyPlayer.Name + " has claimed the bounty on " + args.Player.Name + " and won " + Players.GetByUsername(args.Player.Name).bountyPrice + " dollas!", Color.IndianRed);
             }
@@ -348,7 +348,7 @@ namespace PluginTemplate
 
             var player = args.Parameters[0];
             var quantity = args.Parameters[1];
-            var Nplayer = TimeRanks.TimeRanks.Players.GetByUsername(player);
+            var Nplayer = SimpleEcon.PlayerManager.GetPlayer(player);
 
             if (Nplayer == null)
             {
@@ -362,9 +362,9 @@ namespace PluginTemplate
                 return;
             }
 
-            Nplayer.totalCurrency += int.Parse(quantity);
-            args.Player.SendMessage($"You have given {player} {quantity} {TimeRanks.TimeRanks.config.currencyNamePlural}!", Color.LightGreen);
-            TSPlayer.FindByNameOrID(player)[0].SendMessage($"You have been given {quantity} {TimeRanks.TimeRanks.config.currencyNamePlural} by {args.Player.Name}!", Color.LightGreen);
+            Nplayer.balance += int.Parse(quantity);
+            args.Player.SendMessage($"You have given {player} {quantity} {SimpleEcon.SimpleEcon.config.currencyNamePlural}!", Color.LightGreen);
+            TSPlayer.FindByNameOrID(player)[0].SendMessage($"You have been given {quantity} {SimpleEcon.SimpleEcon.config.currencyNamePlural} by {args.Player.Name}!", Color.LightGreen);
 
         }
 
@@ -454,7 +454,7 @@ namespace PluginTemplate
             TSPlayer player = TSPlayer.FindByNameOrID(args.Who.ToString())[0];
             if(Players.GetByUsername(player.Name).isBountied == true)
             {
-                TimeRanks.TimeRanks.Players.GetByUsername(Players.GetByUsername(player.Name).bountiedBy.Name).totaltime += Players.GetByUsername(player.Name).bountyPrice;
+                SimpleEcon.PlayerManager.GetPlayer(Players.GetByUsername(player.Name).bountiedBy.Name).balance += Players.GetByUsername(player.Name).bountyPrice;
                 TSPlayer.FindByNameOrID(Players.GetByUsername(player.Name).bountiedBy.Name)[0].SendMessage("You have been repayed for your bounty because the the bountied player has left the game.", Color.Aquamarine);
             }
         }
@@ -653,13 +653,13 @@ namespace PluginTemplate
                 {
                     requestedFood = "Golden Delight";
                     price = 120;
-                    if (TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency < 120)
+                    if (SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance < 120)
                     {
                         Player.SendErrorMessage("You do not have enough dollas to order this food! (120 $ needed)");
                         return;
                     }
 
-                    TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency -= 120;
+                    SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance -= 120;
                     var order = new Tuple<TSPlayer, string>(Player, requestedFood);
                     orders.Add(order);
                     SendToChefs(0, order);
@@ -670,13 +670,13 @@ namespace PluginTemplate
                 {
                     requestedFood = "Burger";
                     price = 6;
-                    if (TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency < 6)
+                    if (SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance < 6)
                     {
                         Player.SendErrorMessage("You do not have enough dollas to order this food! (6 $ needed)");
                         return;
                     }
 
-                    TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency -= 6;
+                    SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance -= 6;
                     var order = new Tuple<TSPlayer, string>(Player, requestedFood);
                     orders.Add(order);
                     SendToChefs(0, order);
@@ -687,13 +687,13 @@ namespace PluginTemplate
                 {
                     requestedFood = "Fries";
                     price = 3;
-                    if (TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency < 3)
+                    if (SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance < 3)
                     {
                         Player.SendErrorMessage("You do not have enough dollas to order this food! (3 $ needed)");
                         return;
                     }
 
-                    TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency -= 3;
+                    SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance -= 3;
                     var order = new Tuple<TSPlayer, string>(Player, requestedFood);
                     orders.Add(order);
                     SendToChefs(0, order);
@@ -704,13 +704,13 @@ namespace PluginTemplate
                 {
                     requestedFood = "Cream Soda";
                     price = 4;
-                    if (TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency < 4)
+                    if (SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance < 4)
                     {
                         Player.SendErrorMessage("You do not have enough dollas to order this food! (4 $ needed)");
                         return;
                     }
 
-                    TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency -= 4;
+                    SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance -= 4;
                     var order = new Tuple<TSPlayer, string>(Player, requestedFood);
                     orders.Add(order);
                     SendToChefs(0, order);
@@ -721,13 +721,13 @@ namespace PluginTemplate
                 {
                     requestedFood = "Coffee";
                     price = 3;
-                    if (TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency < 3)
+                    if (SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance < 3)
                     {
                         Player.SendErrorMessage("You do not have enough dollas to order this food! (3 $ needed)");
                         return;
                     }
 
-                    TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency -= 3;
+                    SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance -= 3;
                     var order = new Tuple<TSPlayer, string>(Player, requestedFood);
                     orders.Add(order);
                     SendToChefs(0, order);
@@ -738,13 +738,13 @@ namespace PluginTemplate
                 {
                     requestedFood = "Hotdog";
                     price = 6;
-                    if (TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency < 6)
+                    if (SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance < 6)
                     {
                         Player.SendErrorMessage("You do not have enough dollas to order this food! (6 $ needed)");
                         return;
                     }
 
-                    TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency -= 6;
+                    SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance -= 6;
                     var order = new Tuple<TSPlayer, string>(Player, requestedFood);
                     orders.Add(order);
                     SendToChefs(0, order);
@@ -755,13 +755,13 @@ namespace PluginTemplate
                 {
                     requestedFood = "Ale";
                     price = 3;
-                    if (TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency < 6)
+                    if (SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance < 6)
                     {
                         Player.SendErrorMessage("You do not have enough dollas to order this food! (6 $ needed)");
                         return;
                     }
 
-                    TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency -= 6;
+                    SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance -= 6;
                     var order = new Tuple<TSPlayer, string>(Player, requestedFood);
                     orders.Add(order);
                     SendToChefs(0, order);
@@ -883,13 +883,13 @@ namespace PluginTemplate
                     {
                         requestedFood = "Golden Delight";
                         price = 120;
-                        if (TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency < 120)
+                        if (SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance < 120)
                         {
                             Player.SendErrorMessage("You do not have enough dollas to order this food! (120 $ needed)");
                             return;
                         }
 
-                        TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency -= 120;
+                        SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance -= 120;
                         var order = new Tuple<TSPlayer, string>(Player, requestedFood);
                         orders.Add(order);
                         SendToChefs(0, order);
@@ -900,13 +900,12 @@ namespace PluginTemplate
                     {
                         requestedFood = "Burger";
                         price = 6;
-                        if (TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency < 6)
+                        if (SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance < 6)
                         {
                             Player.SendErrorMessage("You do not have enough dollas to order this food! (6 $ needed)");
                             return;
                         }
-
-                        TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency -= 6;
+                        SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance -= 6;
                         var order = new Tuple<TSPlayer, string>(Player, requestedFood);
                         orders.Add(order);
                         SendToChefs(0, order);
@@ -917,13 +916,13 @@ namespace PluginTemplate
                     {
                         requestedFood = "Fries";
                         price = 3;
-                        if (TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency < 3)
+                        if (SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance < 3)
                         {
                             Player.SendErrorMessage("You do not have enough dollas to order this food! (3 $ needed)");
                             return;
                         }
 
-                        TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency -= 3;
+                        SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance -= 3;
                         var order = new Tuple<TSPlayer, string>(Player, requestedFood);
                         orders.Add(order);
                         SendToChefs(0, order);
@@ -934,13 +933,13 @@ namespace PluginTemplate
                     {
                         requestedFood = "Cream Soda";
                         price = 4;
-                        if (TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency < 4)
+                        if (SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance < 4)
                         {
                             Player.SendErrorMessage("You do not have enough dollas to order this food! (4 $ needed)");
                             return;
                         }
 
-                        TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency -= 4;
+                        SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance -= 4;
                         var order = new Tuple<TSPlayer, string>(Player, requestedFood);
                         orders.Add(order);
                         SendToChefs(0, order);
@@ -951,13 +950,13 @@ namespace PluginTemplate
                     {
                         requestedFood = "Coffee";
                         price = 3;
-                        if (TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency < 3)
+                        if (SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance < 3)
                         {
                             Player.SendErrorMessage("You do not have enough dollas to order this food! (3 $ needed)");
                             return;
                         }
 
-                        TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency -= 3;
+                        SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance -= 3;
                         var order = new Tuple<TSPlayer, string>(Player, requestedFood);
                         orders.Add(order);
                         SendToChefs(0, order);
@@ -968,13 +967,13 @@ namespace PluginTemplate
                     {
                         requestedFood = "Hotdog";
                         price = 6;
-                        if (TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency < 6)
+                        if (SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance < 6)
                         {
                             Player.SendErrorMessage("You do not have enough dollas to order this food! (6 $ needed)");
                             return;
                         }
 
-                        TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency -= 6;
+                        SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance -= 6;
                         var order = new Tuple<TSPlayer, string>(Player, requestedFood);
                         orders.Add(order);
                         SendToChefs(0, order);
@@ -985,13 +984,13 @@ namespace PluginTemplate
                     {
                         requestedFood = "Ale";
                         price = 3;
-                        if (TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency < 6)
+                        if (SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance < 6)
                         {
                             Player.SendErrorMessage("You do not have enough dollas to order this food! (6 $ needed)");
                             return;
                         }
 
-                        TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency -= 6;
+                        SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance -= 6;
                         var order = new Tuple<TSPlayer, string>(Player, requestedFood);
                         orders.Add(order);
                         SendToChefs(0, order);
@@ -1088,6 +1087,7 @@ namespace PluginTemplate
             Commands.ChatCommands.Add(new Command("av.bounty", Serve, "serve"));
             Commands.ChatCommands.Add(new Command("av.bounty", Chef, "chef"));
             Commands.ChatCommands.Add(new Command("clan.use", MyClan, "myclan", "cinfo", "claninfo"));
+            Commands.ChatCommands.Add(new Command("av.donate", Conv, "conv", "convert", "dollastogold"));
 
             Commands.ChatCommands.Add(new Command("av.admin", adminGiveDollas, "givecurrency", "gc", "givebal", "baladd"));
 
@@ -1179,8 +1179,8 @@ namespace PluginTemplate
                 dolla++;
             }
 
-            TimeRanks.TimeRanks.Players.GetByUsername(args.Player.Name).totalCurrency += dolla;
-            args.Player.SendMessage($"You have sold a {item.Name} and received {dolla} {TimeRanks.TimeRanks.config.currencyNamePlural}!", Color.LightGreen);
+            SimpleEcon.PlayerManager.GetPlayer(args.Player.Name).balance += dolla;
+            args.Player.SendMessage($"You have sold a {item.Name} and received {dolla} {SimpleEcon.SimpleEcon.config.currencyNamePlural}!", Color.LightGreen);
             return;
         }
         #endregion
@@ -1347,9 +1347,9 @@ namespace PluginTemplate
             {
                 player = TSPlayer.FindByNameOrID(bountied)[0];
 
-                if (TimeRanks.TimeRanks.Players.GetByUsername(player.Name.ToString()).totalCurrency >= bountyPrice)
+                if (SimpleEcon.PlayerManager.GetPlayer(player.Name.ToString()).balance >= bountyPrice)
                 {
-                    TimeRanks.TimeRanks.Players.GetByUsername(player.Name.ToString()).totalCurrency -= bountyPrice;
+                    SimpleEcon.PlayerManager.GetPlayer(player.Name.ToString()).balance -= bountyPrice;
                     TSPlayer.All.SendMessage("A bounty has been placed on " + player.Name + " for " + bountyPrice + " dollas! Kill them to get this reward!", Color.LightGreen);
                     Players.GetByUsername(player.Name.ToString()).bountyPrice = bountyPrice;
                     Players.GetByUsername(player.Name.ToString()).isBountied = true;
@@ -1882,6 +1882,97 @@ namespace PluginTemplate
             return;
         }
 
+        public void Conv(CommandArgs args)
+        {
+            if (args.Parameters.Count < 1)
+            {
+                args.Player.SendErrorMessage("Please enter the value of " + SimpleEcon.SimpleEcon.config.currencyNamePlural + " you want to convert to coins! Ex. /conv 10 = 1 gold coin");
+                return;
+            }
+
+
+            int convertedAmount = int.Parse(args.Parameters[0]);
+            if (convertedAmount < 0)
+            {
+                args.Player.SendErrorMessage("Value cannot be negative!");
+            }
+            int originalAmount = convertedAmount;
+            int plat = 0;
+            int gold = 0;
+            int silver = 0;
+            string statement = "";
+
+            if (convertedAmount <= SimpleEcon.PlayerManager.GetPlayer(args.Player.Name).balance)
+            {
+
+                while (convertedAmount >= 1000)
+                {
+                    plat++;
+                    convertedAmount -= 1000;
+                }
+
+                while (convertedAmount >= 10)
+                {
+                    gold++;
+                    convertedAmount -= 10;
+                }
+
+                while (convertedAmount >= 1)
+                {
+                    silver++;
+                    convertedAmount--;
+                }
+
+                if (plat > 0)
+                {
+                    args.Player.GiveItem(ItemID.PlatinumCoin, plat, 0);
+                }
+                if (gold > 0)
+                {
+                    args.Player.GiveItem(ItemID.GoldCoin, gold, 0);
+                }
+                if (silver > 0)
+                {
+                    args.Player.GiveItem(ItemID.SilverCoin, silver, 0);
+                }
+
+                if (plat > 0)
+                {
+                    statement += "[c/eaeaea:" + plat + " platinum]";
+                    if (gold > 0 || silver > 0)
+                    {
+                        statement += ", ";
+                    }
+                }
+
+                if (gold > 0)
+                {
+                    statement += "[c/ffd03e:" + gold + " gold]";
+                    if (silver > 0)
+                    {
+                        statement += ", and ";
+                    }
+                }
+
+                if (silver > 0)
+                {
+                    statement += "[c/bebebe:" + silver + " silver]";
+                }
+
+
+                SimpleEcon.PlayerManager.GetPlayer(args.Player.Name).balance -= originalAmount;
+                args.Player.SendMessage("- " + originalAmount + " lost due to conversion", Color.IndianRed);
+                args.Player.SendMessage("You have converted " + originalAmount + " " + SimpleEcon.SimpleEcon.config.currencyNamePlural + " into " + statement + " coins!", Color.LightGreen);
+                return;
+
+            }
+            else
+            {
+                args.Player.SendErrorMessage("You don't have this many " + SimpleEcon.SimpleEcon.config.currencyNamePlural + "! Who you tryna foo', foo'??");
+                return;
+            }
+        }
+
         void Clan(CommandArgs args)
         {
             if(args.Player.Account == null)
@@ -2000,13 +2091,13 @@ namespace PluginTemplate
                         args.Player.SendErrorMessage("You are already in a clan!");
                         return;
                     }
-                    if(TimeRanks.TimeRanks.Players.GetByUsername(args.Player.Name).totalCurrency >= 500)
+                    if(SimpleEcon.PlayerManager.GetPlayer(args.Player.Name).balance >= 500)
                     {
-                        TimeRanks.TimeRanks.Players.GetByUsername(args.Player.Name).totalCurrency -= 500;
+                        SimpleEcon.PlayerManager.GetPlayer(args.Player.Name).balance -= 500;
                     }
                     else
                     {
-                        args.Player.SendMessage("You do not have the 500 " + TimeRanks.TimeRanks.config.currencyNamePlural + " required to create a clan! Try again when you have enough.", Color.Red);
+                        args.Player.SendMessage("You do not have the 500 " + SimpleEcon.SimpleEcon.config.currencyNamePlural + " required to create a clan! Try again when you have enough.", Color.Red);
                         return;
                     }
 
@@ -2027,7 +2118,7 @@ namespace PluginTemplate
                     dbManager.InsertClan(clan);
 
                     args.Player.SendMessage($"Your clan {clanName} has been created!", Color.LightGreen);
-                    args.Player.SendMessage($"-500 {TimeRanks.TimeRanks.config.currencyNamePlural} for creating a clan!", Color.Red);
+                    args.Player.SendMessage($"-500 {SimpleEcon.SimpleEcon.config.currencyNamePlural} for creating a clan!", Color.Red);
  
                     return;
                 case "region":
