@@ -16,6 +16,7 @@ using System.IO;
 using System.Text;
 using System.Data;
 using System.Linq.Expressions;
+using System.Linq;
 
 namespace PluginTemplate
 {
@@ -613,6 +614,7 @@ namespace PluginTemplate
             Order.Item1.GiveItem(TShock.Utils.GetItemByName(Order.Item2)[0].netID, 1);
             Order.Item1.SendMessage($"Your food has been served by {Chef.name}! Enjoy :D! If you're feeling generous, tip them for their service with /pay!", Color.Green);
             SendToChefs(2, Order, Player);
+            orders.RemoveAt(Chef.order);
             return;
 
         }
@@ -621,6 +623,155 @@ namespace PluginTemplate
         {
             TSPlayer Player = args.Player;
 
+            if(args.Parameters.Count > 1)
+            {
+                var HeadChef = TSPlayer.FindByNameOrID("Evauation")[0];
+              if (Player == HeadChef || Players.GetByUsername(Player.Name).isChef == true)
+                {
+                    Player.SendErrorMessage("You cannot order from the restaurant and be working at the restaurant!");
+                    return;
+                }
+                if (args.Parameters[1] == null)
+                {
+                    Player.SendErrorMessage("Check out the /menu to see a list of the foods you can order!");
+                    return;
+                }
+                if (Player.CurrentRegion.Name != "lobby")
+                {
+                    Player.SendErrorMessage("You must be in the restaurant to order food!");
+                    return;
+                }
+                if (orders.Any(x => x.Item1.Name == Player.Name))
+                {
+                    Player.SendErrorMessage("You cannot make two orders at the same time! Wait for your current food!");
+                    return;
+                }
+                var requestedFood = args.Parameters[1].ToLower();
+                var price = 0;
+
+                if (requestedFood == "golden delight" || requestedFood == "gd" || requestedFood == "goldendelight")
+                {
+                    requestedFood = "Golden Delight";
+                    price = 120;
+                    if (TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency < 120)
+                    {
+                        Player.SendErrorMessage("You do not have enough dollas to order this food! (120 $ needed)");
+                        return;
+                    }
+
+                    TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency -= 120;
+                    var order = new Tuple<TSPlayer, string>(Player, requestedFood);
+                    orders.Add(order);
+                    SendToChefs(0, order);
+                    Player.SendInfoMessage($"Your order has placed for a {requestedFood}! Please seat yourself and wait for a chef to prepare your food!");
+                    return;
+                }
+                if (requestedFood == "hamburger" || requestedFood == "burger" || requestedFood == "big mac" || requestedFood == "cheeseburger")
+                {
+                    requestedFood = "Burger";
+                    price = 6;
+                    if (TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency < 6)
+                    {
+                        Player.SendErrorMessage("You do not have enough dollas to order this food! (6 $ needed)");
+                        return;
+                    }
+
+                    TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency -= 6;
+                    var order = new Tuple<TSPlayer, string>(Player, requestedFood);
+                    orders.Add(order);
+                    SendToChefs(0, order);
+                    Player.SendInfoMessage($"Your order has placed for a {requestedFood}! Please seat yourself and wait for a chef to prepare your food!");
+                    return;
+                }
+                if (requestedFood == "fries" || requestedFood == "french fry" || requestedFood == "fry")
+                {
+                    requestedFood = "Fries";
+                    price = 3;
+                    if (TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency < 3)
+                    {
+                        Player.SendErrorMessage("You do not have enough dollas to order this food! (3 $ needed)");
+                        return;
+                    }
+
+                    TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency -= 3;
+                    var order = new Tuple<TSPlayer, string>(Player, requestedFood);
+                    orders.Add(order);
+                    SendToChefs(0, order);
+                    Player.SendInfoMessage($"Your order has placed for a {requestedFood}! Please seat yourself and wait for a chef to prepare your food!");
+                    return;
+                }
+                if (requestedFood == "cream soda" || requestedFood == "soda")
+                {
+                    requestedFood = "Cream Soda";
+                    price = 4;
+                    if (TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency < 4)
+                    {
+                        Player.SendErrorMessage("You do not have enough dollas to order this food! (4 $ needed)");
+                        return;
+                    }
+
+                    TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency -= 4;
+                    var order = new Tuple<TSPlayer, string>(Player, requestedFood);
+                    orders.Add(order);
+                    SendToChefs(0, order);
+                    Player.SendInfoMessage($"Your order has placed for a {requestedFood}! Please seat yourself and wait for a chef to prepare your food!");
+                    return;
+                }
+                if (requestedFood == "coffee" || requestedFood == "latte" || requestedFood == "cappucino")
+                {
+                    requestedFood = "Coffee";
+                    price = 3;
+                    if (TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency < 3)
+                    {
+                        Player.SendErrorMessage("You do not have enough dollas to order this food! (3 $ needed)");
+                        return;
+                    }
+
+                    TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency -= 3;
+                    var order = new Tuple<TSPlayer, string>(Player, requestedFood);
+                    orders.Add(order);
+                    SendToChefs(0, order);
+                    Player.SendInfoMessage($"Your order has placed for a {requestedFood}! Please seat yourself and wait for a chef to prepare your food!");
+                    return;
+                }
+                if (requestedFood == "hot dog" || requestedFood == "hotdog" || requestedFood == "dog")
+                {
+                    requestedFood = "Hotdog";
+                    price = 6;
+                    if (TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency < 6)
+                    {
+                        Player.SendErrorMessage("You do not have enough dollas to order this food! (6 $ needed)");
+                        return;
+                    }
+
+                    TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency -= 6;
+                    var order = new Tuple<TSPlayer, string>(Player, requestedFood);
+                    orders.Add(order);
+                    SendToChefs(0, order);
+                    Player.SendInfoMessage($"Your order has placed for a {requestedFood}! Please seat yourself and wait for a chef to prepare your food!");
+                    return;
+                }
+                if (requestedFood == "ale" || requestedFood == "beer" || requestedFood == "booze")
+                {
+                    requestedFood = "Ale";
+                    price = 3;
+                    if (TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency < 6)
+                    {
+                        Player.SendErrorMessage("You do not have enough dollas to order this food! (6 $ needed)");
+                        return;
+                    }
+
+                    TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency -= 6;
+                    var order = new Tuple<TSPlayer, string>(Player, requestedFood);
+                    orders.Add(order);
+                    SendToChefs(0, order);
+                    Player.SendInfoMessage($"Your order has placed for a {requestedFood}! Please seat yourself and wait for a chef to prepare your food!");
+                    return;
+                }
+                args.Player.SendErrorMessage("That food item does not exist! Check out our menu with /menu");
+                return;
+            }
+
             Player.SendInfoMessage("Menu for The Chef's Diner");
             Player.SendInfoMessage("Golden Delight - $120");
             Player.SendInfoMessage("Hamburger - $6");
@@ -628,7 +779,9 @@ namespace PluginTemplate
             Player.SendInfoMessage("Cream Soda - $4");
             Player.SendInfoMessage("Coffee - $3");
             Player.SendInfoMessage("Hot Dog - $6");
-            if(restaurantOpen == true)
+            Player.SendInfoMessage("(NEW) Beer - $3");
+
+            if (restaurantOpen == true)
             {
                 Player.SendInfoMessage("Use /chef order <food> to order something! Ex. /chef order HotDog (You must be in the restaurant!)");
             }
@@ -718,6 +871,11 @@ namespace PluginTemplate
                         Player.SendErrorMessage("You must be in the restaurant to order food!");
                         return;
                     }
+                    if(orders.Any(x => x.Item1.Name == Player.Name)){
+                        Player.SendErrorMessage("You cannot make two orders at the same time! Wait for your current food!");
+                        return;
+                    }
+
                     var requestedFood = args.Parameters[1].ToLower();
                     var price = 0;
 
@@ -823,6 +981,24 @@ namespace PluginTemplate
                         Player.SendInfoMessage($"Your order has placed for a {requestedFood}! Please seat yourself and wait for a chef to prepare your food!");
                         return;
                     }
+                    if (requestedFood == "ale" || requestedFood == "beer" || requestedFood == "booze")
+                    {
+                        requestedFood = "Ale";
+                        price = 3;
+                        if (TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency < 6)
+                        {
+                            Player.SendErrorMessage("You do not have enough dollas to order this food! (6 $ needed)");
+                            return;
+                        }
+
+                        TimeRanks.TimeRanks.Players.GetByUsername(Player.Name).totalCurrency -= 6;
+                        var order = new Tuple<TSPlayer, string>(Player, requestedFood);
+                        orders.Add(order);
+                        SendToChefs(0, order);
+                        Player.SendInfoMessage($"Your order has placed for a {requestedFood}! Please seat yourself and wait for a chef to prepare your food!");
+                        return;
+                    }
+                    args.Player.SendErrorMessage("That food item does not exist! Check out our menu with /menu");
                     return;
                 case "make":
                 case "prep":
@@ -996,7 +1172,7 @@ namespace PluginTemplate
             NetMessage.SendData((int)PacketTypes.PlayerSlot, args.Player.Index, -1, new NetworkText(Main.player[args.Player.Index].inventory[e].Name, NetworkText.Mode.Literal), args.Player.Index, e, 0);
 
 
-            var dolla = item.GetStoreValue() * item.stack / 5000;
+            var dolla = (item.GetStoreValue() * 5000)/ item.stack;
 
             if (dolla == 0)
             {
@@ -1692,7 +1868,7 @@ namespace PluginTemplate
 
             foreach(ClanMember cm in clanMembers)
             {
-                if(TSPlayer.FindByNameOrID(cm.memberName)[0].IsLoggedIn == false)
+                if(TSPlayer.FindByNameOrID(cm.memberName)[0] == null)
                 {
                     continue;
                 }
