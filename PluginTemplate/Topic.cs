@@ -24,7 +24,7 @@ namespace AverageTerrariaMain
         public static Topic GetByName(string name)
         {
 
-            return PluginTemplate.AvMain.TopicList.FirstOrDefault(p => p.name.ToLower() == name.ToLower());
+            return AvMain.TopicList.FirstOrDefault(p => p.name.ToLower() == name.ToLower());
         }
 
         public static List<Element> GetAllElementsFromTopicName(string name)
@@ -32,7 +32,7 @@ namespace AverageTerrariaMain
             var topic = Topic.GetByName(name);
             List<Element> _elements = new List<Element>();
 
-            foreach(Element element in PluginTemplate.AvMain.ElementList)
+            foreach(Element element in AvMain.ElementList)
             {
                 if(element.topic == topic.dbId)
                 {
@@ -69,7 +69,7 @@ namespace AverageTerrariaMain
 
         public static Element GetByName(string name)
         {
-            return PluginTemplate.AvMain.ElementList.FirstOrDefault(e => e.name.ToLower() == name.ToLower());
+            return AvMain.ElementList.FirstOrDefault(e => e.name.ToLower() == name.ToLower());
 
         }
     }

@@ -123,8 +123,8 @@ namespace AverageTerrariaMain
 
         public void InitialSync()
         {
-            PluginTemplate.AvMain.TopicList.Clear();
-            PluginTemplate.AvMain.ElementList.Clear();
+            AvMain.TopicList.Clear();
+            AvMain.ElementList.Clear();
 
 
             using (var reader = _db.QueryReader("SELECT * FROM Topics"))
@@ -134,7 +134,7 @@ namespace AverageTerrariaMain
                     var actualId = reader.Get<int>("Id");
                     var name = reader.Get<string>("Name");
 
-                    PluginTemplate.AvMain.TopicList.Add(new Topic(actualId, name));
+                    AvMain.TopicList.Add(new Topic(actualId, name));
 
                     
                 }
@@ -150,7 +150,7 @@ namespace AverageTerrariaMain
                     var message = reader.Get<string>("Message");
 
 
-                    PluginTemplate.AvMain.ElementList.Add(new Element(actualId, name, message, topic));
+                    AvMain.ElementList.Add(new Element(actualId, name, message, topic));
 
 
                 }

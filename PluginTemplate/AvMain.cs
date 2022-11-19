@@ -20,9 +20,11 @@ using System.Linq.Expressions;
 using Terraria.GameContent.Creative;
 using Terraria.GameContent.NetModules;
 using Terraria.Net;
+using ClientApi.Networking;
+
 #endregion
 
-namespace PluginTemplate
+namespace AverageTerrariaMain
 {
     [ApiVersion(2, 1)]
     public class AvMain : TerrariaPlugin
@@ -36,8 +38,9 @@ namespace PluginTemplate
 		public Timer bcTimer;
         private IDbConnection _db;
         public static Database dbManager;
+		const int MaxItems = 5456;
 
-		public Timer cgTimer;
+        public Timer cgTimer;
 
 		public static chatGame cg = new chatGame();
 
@@ -85,7 +88,7 @@ namespace PluginTemplate
 		}
 		#endregion
 
-		#region onWorldLoad
+		#region onWorldLoad / Command Init
 
 		void onInitialize(EventArgs e)
 		{
@@ -149,24 +152,24 @@ namespace PluginTemplate
         }
         #endregion
         #region journeyUnlock Command
+		//courtesy of Sergei / xtpkt AKA my favorite auroraiiaanasjjana (whatever shut up)
         public void journeyUnlockAll(CommandArgs args)
         {
-			TSPlayer player = args.Player;
 
-			Console.WriteLine("Pre");
+            if (!args.Player.ContainsData("ResearchUnlocked"))
+                for (short i = 0; i <= MaxItems; i++)
+                {
+                    var packet = new PacketFactory()
+                  .SetType((byte)PacketTypes.LoadNetModule)
+                  .PackUInt16(5)
+                  .PackInt16(i)
+                  .PackInt16(999)
+                  .GetByteData();
+                    args.Player.SetData("ResearchUnlocked", true);
+                    args.Player.SendRawData(packet);
+                }
 
-			for (var i = 1; i < ItemID.Count; i++)
-            {
-				var amount = CreativeItemSacrificesCatalog.Instance._sacrificeCountNeededByItemId[i];
-				var response = NetCreativeUnlocksModule.SerializeItemSacrifice(i, amount);
-				Console.WriteLine(amount + "" + response.Buffer.Data);
-				NetManager.Instance.SendToClient(response, player.Index);
-
-			}
-			player.SendMessage("All items have been researched!", Color.LightBlue);
-			return;
-
-		}
+        }
         #endregion
 
         #region lastOnline Command
@@ -195,7 +198,7 @@ namespace PluginTemplate
 			}
 
 			DateTime lastAccessed = DateTime.Parse(lastOnlinePlayer.LastAccessed).ToLocalTime();
-			player.SendInfoMessage(lastOnlinePlayer.Name + " was last online " + lastAccessed.Subtract(DateTime.Now).TotalHours + " hours ago (" + lastAccessed + ")");
+			player.SendInfoMessage(lastOnlinePlayer.Name + " was last online " + Math.Round(DateTime.Now.Subtract(lastAccessed).TotalHours) + " hours ago (" + lastAccessed + ")");
 			return;
         }
 
@@ -566,6 +569,10 @@ namespace PluginTemplate
 							TSPlayer.Server.SpawnNPC(npc.type, npc.FullName, amount, args.Player.TileX, args.Player.TileY);
 							spawnName = "Deerclops";
 							break;
+						case "mechdusa":
+							NPC.SpawnMechQueen(args.Player.Index);
+							spawnName = "Mechdusa";
+							return;
 						default:
 							args.Player.SendErrorMessage("Invalid boss!");
 							return;
@@ -765,24 +772,21 @@ namespace PluginTemplate
 		}
         #endregion
 
-        #region wip
-        //coming soon-ish? if i can figure out how to implement
+        #region vanish command
         void vanishCommand(CommandArgs args)
         {
-			var player = Players.GetByUsername(args.Player.Name);
-
-
-			//if (player.isVanished == true)
-   //         {
-
-   //         }
-   //         else
-   //         {
-			//	TSPlayer.All.SendMessage(player.name + " has left.", Microsoft.Xna.Framework.Color.LightYellow);
-			//	player.tsPlayer.SetBuff(BuffID.Invisibility, 360000);
-
-
-   //         }
+            int num = Projectile.NewProjectile(Projectile.GetNoneSource(), new Vector2(args.Player.X, args.Player.Y), Vector2.Zero, 170, 0, 0f, 255, 0f, 0f);
+            Main.projectile[num].timeLeft = 0;
+            NetMessage.SendData(27, -1, -1, null, num, 0f, 0f, 0f, 0, 0, 0);
+            args.TPlayer.active = !args.TPlayer.active;
+            NetMessage.SendData(14, -1, args.Player.Index, null, args.Player.Index, (float)args.TPlayer.active.GetHashCode(), 0f, 0f, 0, 0, 0);
+            bool active = args.TPlayer.active;
+            if (active)
+            {
+                NetMessage.SendData(4, -1, args.Player.Index, null, args.Player.Index, 0f, 0f, 0f, 0, 0, 0);
+                NetMessage.SendData(13, -1, args.Player.Index, null, args.Player.Index, 0f, 0f, 0f, 0, 0, 0);
+            }
+            args.Player.SendSuccessMessage(string.Format("{0}abled Vanish.", args.TPlayer.active ? "Dis" : "En"));
         }
         #endregion
 
