@@ -21,6 +21,7 @@ using Terraria.GameContent.Creative;
 using Terraria.GameContent.NetModules;
 using Terraria.Net;
 using ClientApi.Networking;
+using TShockAPI.Hooks;
 
 #endregion
 
@@ -71,6 +72,7 @@ namespace AverageTerrariaMain
 			ServerApi.Hooks.ServerChat.Register(this, onChat);
 			ServerApi.Hooks.NetGreetPlayer.Register(this, onGreet);
 			ServerApi.Hooks.GameUpdate.Register(this, onUpdate);
+			On.Terraria.NPC.DoDeathEvents_CelebrateBossDeath += CelebrateBossDeath;
 			TShockAPI.Hooks.RegionHooks.RegionEntered += onRegionEnter;
 			TShockAPI.Hooks.RegionHooks.RegionLeft += onRegionLeave;
       switch (TShock.Config.Settings.StorageType.ToLower())
@@ -86,11 +88,16 @@ namespace AverageTerrariaMain
       dbManager = new Database(_db);
 			Last = DateTime.UtcNow;
 		}
-		#endregion
 
-		#region onWorldLoad / Command Init
+        private void CelebrateBossDeath(On.Terraria.NPC.orig_DoDeathEvents_CelebrateBossDeath orig, NPC self)
+        {
+			return;
+        }
+        #endregion
 
-		void onInitialize(EventArgs e)
+        #region onWorldLoad / Command Init
+
+        void onInitialize(EventArgs e)
 		{
 			Config = Config.Read();
 			Commands.ChatCommands.Add(new Command("av.info", infoCommand, "info"));
