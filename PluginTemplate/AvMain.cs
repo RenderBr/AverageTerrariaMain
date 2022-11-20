@@ -879,7 +879,7 @@ namespace PluginTemplate
                     var requestedFood = args.Parameters[1].ToLower();
                     var price = 0;
 
-                    if (requestedFood == "golden delight" || requestedFood == "gd" || requestedFood == "goldendelight")
+                    if (requestedFood == "golden delight" || requestedFood == "gd" || requestedFood == "goldendelight" || requestedFood == "gold" || requestedFood == "buffs")
                     {
                         requestedFood = "Golden Delight";
                         price = 120;
@@ -896,7 +896,7 @@ namespace PluginTemplate
                         Player.SendInfoMessage($"Your order has placed for a {requestedFood}! Please seat yourself and wait for a chef to prepare your food!");
                         return;
                     }
-                    if (requestedFood == "hamburger" || requestedFood == "burger" || requestedFood == "big mac" || requestedFood == "cheeseburger")
+                    if (requestedFood == "hamburger" || requestedFood == "burger" || requestedFood == "big mac" || requestedFood == "cheeseburger" || requestedFood == "whopper" || requestedFood == "jumbo jack")
                     {
                         requestedFood = "Burger";
                         price = 6;
@@ -912,7 +912,23 @@ namespace PluginTemplate
                         Player.SendInfoMessage($"Your order has placed for a {requestedFood}! Please seat yourself and wait for a chef to prepare your food!");
                         return;
                     }
-                    if (requestedFood == "fries" || requestedFood == "french fry" || requestedFood == "fry")
+                    if (requestedFood == "apple pie" || requestedFood == "sweet pie" || requestedFood == "fruit pie" || requestedFood == "pie")
+                    {
+                        requestedFood = "Apple Pie";
+                        price = 6;
+                        if (SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance < 6)
+                        {
+                            Player.SendErrorMessage("You do not have enough dollas to order this food! (6 $ needed)");
+                            return;
+                        }
+                        SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance -= 6;
+                        var order = new Tuple<TSPlayer, string>(Player, requestedFood);
+                        orders.Add(order);
+                        SendToChefs(0, order);
+                        Player.SendInfoMessage($"Your order has placed for a {requestedFood}! Please seat yourself and wait for a chef to prepare your food!");
+                        return;
+                    }                    
+                    if (requestedFood == "fries" || requestedFood == "french fry" || requestedFood == "fry" || requestedFood == "chips")
                     {
                         requestedFood = "Fries";
                         price = 3;
@@ -929,7 +945,7 @@ namespace PluginTemplate
                         Player.SendInfoMessage($"Your order has placed for a {requestedFood}! Please seat yourself and wait for a chef to prepare your food!");
                         return;
                     }
-                    if (requestedFood == "cream soda" || requestedFood == "soda")
+                    if (requestedFood == "cream soda" || requestedFood == "soda" || requestedFood == "pop" || requestedFood == "coke")
                     {
                         requestedFood = "Cream Soda";
                         price = 4;
@@ -946,7 +962,7 @@ namespace PluginTemplate
                         Player.SendInfoMessage($"Your order has placed for a {requestedFood}! Please seat yourself and wait for a chef to prepare your food!");
                         return;
                     }
-                    if (requestedFood == "coffee" || requestedFood == "latte" || requestedFood == "cappucino")
+                    if (requestedFood == "coffee" || requestedFood == "latte" || requestedFood == "cappucino" || requestedFood == "cappucino" || requestedFood == "espresso" || requestedFood == "decaf")
                     {
                         requestedFood = "Coffee";
                         price = 3;
