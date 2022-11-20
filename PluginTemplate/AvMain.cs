@@ -912,7 +912,23 @@ namespace PluginTemplate
                         Player.SendInfoMessage($"Your order has placed for a {requestedFood}! Please seat yourself and wait for a chef to prepare your food!");
                         return;
                     }
-                    if (requestedFood == "fries" || requestedFood == "french fry" || requestedFood == "fry" | requestedFood == "chips")
+                    if (requestedFood == "apple pie" || requestedFood == "sweet pie" || requestedFood == "fruit pie" || requestedFood == "pie")
+                    {
+                        requestedFood = "Apple Pie";
+                        price = 6;
+                        if (SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance < 6)
+                        {
+                            Player.SendErrorMessage("You do not have enough dollas to order this food! (6 $ needed)");
+                            return;
+                        }
+                        SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance -= 6;
+                        var order = new Tuple<TSPlayer, string>(Player, requestedFood);
+                        orders.Add(order);
+                        SendToChefs(0, order);
+                        Player.SendInfoMessage($"Your order has placed for a {requestedFood}! Please seat yourself and wait for a chef to prepare your food!");
+                        return;
+                    }                    
+                    if (requestedFood == "fries" || requestedFood == "french fry" || requestedFood == "fry" || requestedFood == "chips")
                     {
                         requestedFood = "Fries";
                         price = 3;
