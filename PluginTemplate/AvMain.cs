@@ -780,6 +780,7 @@ namespace PluginTemplate
             Player.SendInfoMessage("Coffee - $3");
             Player.SendInfoMessage("Hot Dog - $6");
             Player.SendInfoMessage("(NEW) Beer - $3");
+            Player.SendInfoMessage("(NEW) Apple Pie - $6");
 
             if (restaurantOpen == true)
             {
@@ -962,7 +963,7 @@ namespace PluginTemplate
                         Player.SendInfoMessage($"Your order has placed for a {requestedFood}! Please seat yourself and wait for a chef to prepare your food!");
                         return;
                     }
-                    if (requestedFood == "coffee" || requestedFood == "latte" || requestedFood == "cappucino" || requestedFood == "cappucino" || requestedFood == "espresso" || requestedFood == "decaf")
+                    if (requestedFood == "coffee" || requestedFood == "latte" || requestedFood == "cappucino" || requestedFood == "espresso" || requestedFood == "decaf")
                     {
                         requestedFood = "Coffee";
                         price = 3;
