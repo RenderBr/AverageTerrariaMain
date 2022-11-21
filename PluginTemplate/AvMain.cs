@@ -780,6 +780,7 @@ namespace PluginTemplate
             Player.SendInfoMessage("Coffee - $3");
             Player.SendInfoMessage("Hot Dog - $6");
             Player.SendInfoMessage("(NEW) Beer - $3");
+            Player.SendInfoMessage("(NEW) Apple Pie - $6");
 
             if (restaurantOpen == true)
             {
