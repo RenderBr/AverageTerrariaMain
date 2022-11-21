@@ -56,7 +56,7 @@ namespace AverageTerrariaMain
         public override Version Version => new Version(1, 0, 0);
 
         public Config Config { get; private set; }
- 
+
         public override string Author => "Average";
 
         public override string Description => "Provides some functionality for Average's Survival server.";
@@ -112,7 +112,7 @@ namespace AverageTerrariaMain
             {
                 return;
             }
-            
+
         }
 
         public void KillMeEvent(Object sender, GetDataHandlers.KillMeEventArgs args)
@@ -148,7 +148,7 @@ namespace AverageTerrariaMain
                 //    Main.tile[lobbyRegion.BottomRight().X+i, lobbyRegion.BottomRight().Y].
                 }
 
-                    
+
                 TSPlayer.All.SendMessage($"[{restaurantName}] The restaurant is now open for business! Head to /spawn to get some food :D", Color.LightBlue);
             }
             else
@@ -158,7 +158,7 @@ namespace AverageTerrariaMain
 
             }
         }
-        
+
         public void broadcastMessage(Object source, ElapsedEventArgs args)
         {
 			Random rnd = new Random();
@@ -169,7 +169,7 @@ namespace AverageTerrariaMain
         {
             NPC npc = Main.npc[args.npc.whoAmI];
 
-            if (npc.netID == NPCID.EyeofCthulhu) { 
+            if (npc.netID == NPCID.EyeofCthulhu) {
 
             }
         }
@@ -375,7 +375,7 @@ namespace AverageTerrariaMain
 
             //if(npc.netID == NPCID.EyeofCthulhu)
             //{
-                
+
             //    TSPlayer.All.SendMessage("A suspicious eye is upon us!", Color.Red);
             //    npc.lifeMax = 10000+(TShock.Players.Length*1000);
             //    npc.life = 10000+(TShock.Players.Length * 1000);
@@ -470,7 +470,7 @@ namespace AverageTerrariaMain
                     player.SendInfoMessage($"A new order (num. {orders.IndexOf(order)}) has been placed by {order.Item1.Name} for a {order.Item2}. Use /chef prep {orders.IndexOf(order)}");
                 }
             }
- 
+
         }
 
         void SendToChefs(int type, Tuple<TSPlayer, string> order, TSPlayer playerTakingOrder)
@@ -683,6 +683,7 @@ namespace AverageTerrariaMain
             Player.SendInfoMessage("Coffee - $3");
             Player.SendInfoMessage("Hot Dog - $6");
             Player.SendInfoMessage("(NEW) Beer - $3");
+            Player.SendInfoMessage("(NEW) Apple Pie - $6");
 
             if (restaurantOpen == true)
             {
@@ -820,7 +821,7 @@ namespace AverageTerrariaMain
                             Player.SendErrorMessage("You must be in the kitchen to prepare food!");
                             return;
                         }
-                        
+
                     }
                     if (args.Parameters[1] == null)
                     {
@@ -946,7 +947,7 @@ namespace AverageTerrariaMain
             NetMessage.SendData((int)PacketTypes.PlayerSlot, -1, -1, new NetworkText(Main.player[args.Player.Index].inventory[e].Name, NetworkText.Mode.Literal), args.Player.Index, e, 0);
             NetMessage.SendData((int)PacketTypes.PlayerSlot, args.Player.Index, -1, new NetworkText(Main.player[args.Player.Index].inventory[e].Name, NetworkText.Mode.Literal), args.Player.Index, e, 0);
 
-           
+
             args.Player.SendMessage("You have inserted a " + item.Name + " into the donation pool. Other players can receive this with /beg! What a charitable citizen!", Color.LightGreen);
             dbManager.InsertItem(new DonatedItem(item.netID, item.stack, item.prefix));
             avp.donateBeg.Start();
@@ -956,7 +957,7 @@ namespace AverageTerrariaMain
         void Sell(CommandArgs args)
         {
             var avp = Players.GetByUsername(args.Player.Name);
-   
+
             Item item = args.Player.SelectedItem;
             if (item == null)
             {
@@ -1010,13 +1011,13 @@ namespace AverageTerrariaMain
                     page = int.Parse(args.Parameters[0]);
                 }
             }
-  
+
             if(_clans.allClans.Count == 0)
             {
                 args.Player.SendMessage("There are no clans!", Color.LightCyan);
                 return;
             }
-    
+
             args.Player.SendMessage($"Clan List - Page {page}", Color.Gold);
 
             foreach (Clan clan in _clans.allClans) {
@@ -1024,7 +1025,7 @@ namespace AverageTerrariaMain
                 args.Player.SendMessage(clan.name + " - Member Count: " + clan.members.members.Count + "", Color.LightYellow);
             }
 
-            
+
 
         }
         #endregion
@@ -1179,7 +1180,7 @@ namespace AverageTerrariaMain
         #endregion
         void noMoreCoolDown(Object obj, ElapsedEventArgs args)
         {
-            
+
         }
 
         void banItem(int item)
@@ -1540,13 +1541,13 @@ namespace AverageTerrariaMain
                     }
 
                         // handleTree(tile.X, tile.Y, tile.Player);
-                        
-                    
+
+
 
                         tile.Player.SendTileSquareCentered(tile.Player.TileX, tile.Player.TileY, 32);
                         updateTilesForAll(tile);
                         tile.Handled = true;
-                    
+
 
                 }
 
@@ -1913,7 +1914,7 @@ namespace AverageTerrariaMain
                     var clan = new Clan(_clans.allClans.Count+1, clanName, new ClanMembers(), player.Name);
 
                     clan.members.members = new List<ClanMember>();
-                    
+
                     clan.members.members.Add(tempMember);
 
                     Players.GetByUsername(args.Player.Name).clan = clanName;
@@ -1926,7 +1927,7 @@ namespace AverageTerrariaMain
 
                     args.Player.SendMessage($"Your clan {clanName} has been created!", Color.LightGreen);
                     args.Player.SendMessage($"-500 {SimpleEcon.SimpleEcon.config.currencyNamePlural} for creating a clan!", Color.Red);
- 
+
                     return;
                 case "region":
                    if(args.Player.CurrentRegion != null)
@@ -1970,7 +1971,7 @@ namespace AverageTerrariaMain
                         return;
                     }
 
-                    
+
                     if (_clans.FindClan(Players.GetByUsername(player.Name).clan).members.FindMember(player.Name).role > 1)
                     {
                         dbManager.DeleteMember(_clans.FindClan(Players.GetByUsername(player.Name).clan).members.FindMember(kickedPlayer));
@@ -2016,7 +2017,7 @@ namespace AverageTerrariaMain
                         _clans.FindClan(Players.GetByUsername(player.Name).clan).members.members.Remove(_clans.FindClan(Players.GetByUsername(player.Name).clan).members.FindMember(player.Name));
                         Players.GetByUsername(player.Name).clan = "";
                         return;
-                    
+
                     return;
                 case "remove":
                 case "delete": // /clan delete
@@ -2160,8 +2161,8 @@ namespace AverageTerrariaMain
             }
 
             if (Players.GetByUsername(ply.Name).clan != ""){
-                var clan = _clans.FindClan(Players.GetByUsername(ply.Name).clan);    
-                
+                var clan = _clans.FindClan(Players.GetByUsername(ply.Name).clan);
+
                 foreach(string region in clan.regions)
                 {
                     if(args.Region.Name == region)
@@ -2180,7 +2181,7 @@ namespace AverageTerrariaMain
                 }
 
             }
-   
+
         }
 
 		void onRegionLeave(TShockAPI.Hooks.RegionHooks.RegionLeftEventArgs args)
@@ -2200,8 +2201,8 @@ namespace AverageTerrariaMain
 
 		void onChat(ServerChatEventArgs args)
         {
-           
-            
+
+
         }
 
         void infoCommand(CommandArgs args)
@@ -2221,7 +2222,7 @@ namespace AverageTerrariaMain
 
             args.Player.SendSuccessMessage("Average's Terraria plugin config has been reloaded!");
         }
-        
+
         /// <summary>
         /// Performs plugin cleanup logic
         /// Remove your hooks and perform general cleanup here
@@ -2242,6 +2243,6 @@ namespace AverageTerrariaMain
         }
 
 
-        
+
     }
 }
