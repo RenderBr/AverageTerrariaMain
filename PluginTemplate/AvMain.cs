@@ -18,7 +18,7 @@ using System.Data;
 using System.Linq.Expressions;
 using System.Linq;
 
-namespace PluginTemplate
+namespace AverageTerrariaMain
 {
     /// <summary>
     /// The main plugin class should always be decorated with an ApiVersion attribute. The current API Version is 1.25
@@ -42,6 +42,7 @@ namespace PluginTemplate
         public static List<Tuple<TSPlayer, string>> orders = new List<Tuple<TSPlayer, string>>();
         public static List<TSPlayer> chefs = new List<TSPlayer>();
         public static List<TSPlayer> chefApplicants = new List<TSPlayer>();
+        public static TSPlayer HeadChef = null;
         #endregion
 
         #region anti-rush variables
@@ -469,7 +470,6 @@ namespace PluginTemplate
                     player.SendInfoMessage($"A new order (num. {orders.IndexOf(order)}) has been placed by {order.Item1.Name} for a {order.Item2}. Use /chef prep {orders.IndexOf(order)}");
                 }
             }
-            var HeadChef = TSPlayer.FindByNameOrID("Evauation")[0];
  
         }
 
@@ -646,127 +646,30 @@ namespace PluginTemplate
                     Player.SendErrorMessage("You cannot make two orders at the same time! Wait for your current food!");
                     return;
                 }
-                var requestedFood = args.Parameters[1].ToLower();
+                string requestedFood = args.Parameters[1].ToLower();
                 var price = 0;
 
-                if (requestedFood == "golden delight" || requestedFood == "gd" || requestedFood == "goldendelight")
+                foreach(Food item in Config.Menu)
                 {
-                    requestedFood = "Golden Delight";
-                    price = 120;
-                    if (SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance < 120)
+                    if (item.aliases.Contains(requestedFood) == true)
                     {
-                        Player.SendErrorMessage("You do not have enough dollas to order this food! (120 $ needed)");
-                        return;
-                    }
+                        price = item.price;
+                        requestedFood = item.terrariaName;
 
-                    SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance -= 120;
-                    var order = new Tuple<TSPlayer, string>(Player, requestedFood);
-                    orders.Add(order);
-                    SendToChefs(0, order);
-                    Player.SendInfoMessage($"Your order has placed for a {requestedFood}! Please seat yourself and wait for a chef to prepare your food!");
-                    return;
-                }
-                if (requestedFood == "hamburger" || requestedFood == "burger" || requestedFood == "big mac" || requestedFood == "cheeseburger")
-                {
-                    requestedFood = "Burger";
-                    price = 6;
-                    if (SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance < 6)
-                    {
-                        Player.SendErrorMessage("You do not have enough dollas to order this food! (6 $ needed)");
-                        return;
-                    }
+                        if (SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance < item.price)
+                        {
+                            Player.SendErrorMessage($"You do not have enough dollas to order this food! ({item.price} $ needed)");
+                            return;
+                        }
 
-                    SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance -= 6;
-                    var order = new Tuple<TSPlayer, string>(Player, requestedFood);
-                    orders.Add(order);
-                    SendToChefs(0, order);
-                    Player.SendInfoMessage($"Your order has placed for a {requestedFood}! Please seat yourself and wait for a chef to prepare your food!");
-                    return;
-                }
-                if (requestedFood == "fries" || requestedFood == "french fry" || requestedFood == "fry")
-                {
-                    requestedFood = "Fries";
-                    price = 3;
-                    if (SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance < 3)
-                    {
-                        Player.SendErrorMessage("You do not have enough dollas to order this food! (3 $ needed)");
+                        SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance -= item.price;
+                        var order = new Tuple<TSPlayer, string>(Player, requestedFood);
+                        orders.Add(order);
+                        SendToChefs(0, order);
+                        Player.SendInfoMessage($"Your order has placed for a {requestedFood}! Please seat yourself and wait for a chef to prepare your food!");
                         return;
-                    }
 
-                    SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance -= 3;
-                    var order = new Tuple<TSPlayer, string>(Player, requestedFood);
-                    orders.Add(order);
-                    SendToChefs(0, order);
-                    Player.SendInfoMessage($"Your order has placed for a {requestedFood}! Please seat yourself and wait for a chef to prepare your food!");
-                    return;
-                }
-                if (requestedFood == "cream soda" || requestedFood == "soda")
-                {
-                    requestedFood = "Cream Soda";
-                    price = 4;
-                    if (SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance < 4)
-                    {
-                        Player.SendErrorMessage("You do not have enough dollas to order this food! (4 $ needed)");
-                        return;
                     }
-
-                    SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance -= 4;
-                    var order = new Tuple<TSPlayer, string>(Player, requestedFood);
-                    orders.Add(order);
-                    SendToChefs(0, order);
-                    Player.SendInfoMessage($"Your order has placed for a {requestedFood}! Please seat yourself and wait for a chef to prepare your food!");
-                    return;
-                }
-                if (requestedFood == "coffee" || requestedFood == "latte" || requestedFood == "cappucino")
-                {
-                    requestedFood = "Coffee";
-                    price = 3;
-                    if (SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance < 3)
-                    {
-                        Player.SendErrorMessage("You do not have enough dollas to order this food! (3 $ needed)");
-                        return;
-                    }
-
-                    SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance -= 3;
-                    var order = new Tuple<TSPlayer, string>(Player, requestedFood);
-                    orders.Add(order);
-                    SendToChefs(0, order);
-                    Player.SendInfoMessage($"Your order has placed for a {requestedFood}! Please seat yourself and wait for a chef to prepare your food!");
-                    return;
-                }
-                if (requestedFood == "hot dog" || requestedFood == "hotdog" || requestedFood == "dog")
-                {
-                    requestedFood = "Hotdog";
-                    price = 6;
-                    if (SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance < 6)
-                    {
-                        Player.SendErrorMessage("You do not have enough dollas to order this food! (6 $ needed)");
-                        return;
-                    }
-
-                    SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance -= 6;
-                    var order = new Tuple<TSPlayer, string>(Player, requestedFood);
-                    orders.Add(order);
-                    SendToChefs(0, order);
-                    Player.SendInfoMessage($"Your order has placed for a {requestedFood}! Please seat yourself and wait for a chef to prepare your food!");
-                    return;
-                }
-                if (requestedFood == "ale" || requestedFood == "beer" || requestedFood == "booze")
-                {
-                    requestedFood = "Ale";
-                    price = 3;
-                    if (SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance < 6)
-                    {
-                        Player.SendErrorMessage("You do not have enough dollas to order this food! (6 $ needed)");
-                        return;
-                    }
-
-                    SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance -= 6;
-                    var order = new Tuple<TSPlayer, string>(Player, requestedFood);
-                    orders.Add(order);
-                    SendToChefs(0, order);
-                    Player.SendInfoMessage($"Your order has placed for a {requestedFood}! Please seat yourself and wait for a chef to prepare your food!");
-                    return;
                 }
                 args.Player.SendErrorMessage("That food item does not exist! Check out our menu with /menu");
                 return;
@@ -809,9 +712,9 @@ namespace PluginTemplate
                 return;
             }
 
+            HeadChef = TSPlayer.FindByNameOrID("Evauation")[0];
             var subcommand = args.Parameters[0];
             var Player = args.Player;
-            var HeadChef = TSPlayer.FindByNameOrID("Evauation")[0];
 
             switch (subcommand)
             {
@@ -871,147 +774,35 @@ namespace PluginTemplate
                         Player.SendErrorMessage("You must be in the restaurant to order food!");
                         return;
                     }
-                    if(orders.Any(x => x.Item1.Name == Player.Name)){
+                    if (orders.Any(x => x.Item1.Name == Player.Name))
+                    {
                         Player.SendErrorMessage("You cannot make two orders at the same time! Wait for your current food!");
                         return;
                     }
-
-                    var requestedFood = args.Parameters[1].ToLower();
+                    string requestedFood = args.Parameters[1].ToLower();
                     var price = 0;
 
-                    if (requestedFood == "golden delight" || requestedFood == "gd" || requestedFood == "goldendelight" || requestedFood == "gold" || requestedFood == "buffs")
+                    foreach (Food item in Config.Menu)
                     {
-                        requestedFood = "Golden Delight";
-                        price = 120;
-                        if (SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance < 120)
+                        if (item.aliases.Contains(requestedFood) == true)
                         {
-                            Player.SendErrorMessage("You do not have enough dollas to order this food! (120 $ needed)");
-                            return;
-                        }
+                            price = item.price;
+                            requestedFood = item.terrariaName;
 
-                        SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance -= 120;
-                        var order = new Tuple<TSPlayer, string>(Player, requestedFood);
-                        orders.Add(order);
-                        SendToChefs(0, order);
-                        Player.SendInfoMessage($"Your order has placed for a {requestedFood}! Please seat yourself and wait for a chef to prepare your food!");
-                        return;
-                    }
-                    if (requestedFood == "hamburger" || requestedFood == "burger" || requestedFood == "big mac" || requestedFood == "cheeseburger" || requestedFood == "whopper" || requestedFood == "jumbo jack")
-                    {
-                        requestedFood = "Burger";
-                        price = 6;
-                        if (SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance < 6)
-                        {
-                            Player.SendErrorMessage("You do not have enough dollas to order this food! (6 $ needed)");
-                            return;
-                        }
-                        SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance -= 6;
-                        var order = new Tuple<TSPlayer, string>(Player, requestedFood);
-                        orders.Add(order);
-                        SendToChefs(0, order);
-                        Player.SendInfoMessage($"Your order has placed for a {requestedFood}! Please seat yourself and wait for a chef to prepare your food!");
-                        return;
-                    }
-                    if (requestedFood == "apple pie" || requestedFood == "sweet pie" || requestedFood == "fruit pie" || requestedFood == "pie")
-                    {
-                        requestedFood = "Apple Pie";
-                        price = 6;
-                        if (SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance < 6)
-                        {
-                            Player.SendErrorMessage("You do not have enough dollas to order this food! (6 $ needed)");
-                            return;
-                        }
-                        SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance -= 6;
-                        var order = new Tuple<TSPlayer, string>(Player, requestedFood);
-                        orders.Add(order);
-                        SendToChefs(0, order);
-                        Player.SendInfoMessage($"Your order has placed for a {requestedFood}! Please seat yourself and wait for a chef to prepare your food!");
-                        return;
-                    }                    
-                    if (requestedFood == "fries" || requestedFood == "french fry" || requestedFood == "fry" || requestedFood == "chips")
-                    {
-                        requestedFood = "Fries";
-                        price = 3;
-                        if (SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance < 3)
-                        {
-                            Player.SendErrorMessage("You do not have enough dollas to order this food! (3 $ needed)");
-                            return;
-                        }
+                            if (SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance < item.price)
+                            {
+                                Player.SendErrorMessage($"You do not have enough dollas to order this food! ({item.price} $ needed)");
+                                return;
+                            }
 
-                        SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance -= 3;
-                        var order = new Tuple<TSPlayer, string>(Player, requestedFood);
-                        orders.Add(order);
-                        SendToChefs(0, order);
-                        Player.SendInfoMessage($"Your order has placed for a {requestedFood}! Please seat yourself and wait for a chef to prepare your food!");
-                        return;
-                    }
-                    if (requestedFood == "cream soda" || requestedFood == "soda" || requestedFood == "pop" || requestedFood == "coke")
-                    {
-                        requestedFood = "Cream Soda";
-                        price = 4;
-                        if (SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance < 4)
-                        {
-                            Player.SendErrorMessage("You do not have enough dollas to order this food! (4 $ needed)");
+                            SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance -= item.price;
+                            var order = new Tuple<TSPlayer, string>(Player, requestedFood);
+                            orders.Add(order);
+                            SendToChefs(0, order);
+                            Player.SendInfoMessage($"Your order has placed for a {requestedFood}! Please seat yourself and wait for a chef to prepare your food!");
                             return;
-                        }
 
-                        SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance -= 4;
-                        var order = new Tuple<TSPlayer, string>(Player, requestedFood);
-                        orders.Add(order);
-                        SendToChefs(0, order);
-                        Player.SendInfoMessage($"Your order has placed for a {requestedFood}! Please seat yourself and wait for a chef to prepare your food!");
-                        return;
-                    }
-                    if (requestedFood == "coffee" || requestedFood == "latte" || requestedFood == "cappucino" || requestedFood == "cappucino" || requestedFood == "espresso" || requestedFood == "decaf")
-                    {
-                        requestedFood = "Coffee";
-                        price = 3;
-                        if (SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance < 3)
-                        {
-                            Player.SendErrorMessage("You do not have enough dollas to order this food! (3 $ needed)");
-                            return;
                         }
-
-                        SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance -= 3;
-                        var order = new Tuple<TSPlayer, string>(Player, requestedFood);
-                        orders.Add(order);
-                        SendToChefs(0, order);
-                        Player.SendInfoMessage($"Your order has placed for a {requestedFood}! Please seat yourself and wait for a chef to prepare your food!");
-                        return;
-                    }
-                    if (requestedFood == "hot dog" || requestedFood == "hotdog" || requestedFood == "dog")
-                    {
-                        requestedFood = "Hotdog";
-                        price = 6;
-                        if (SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance < 6)
-                        {
-                            Player.SendErrorMessage("You do not have enough dollas to order this food! (6 $ needed)");
-                            return;
-                        }
-
-                        SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance -= 6;
-                        var order = new Tuple<TSPlayer, string>(Player, requestedFood);
-                        orders.Add(order);
-                        SendToChefs(0, order);
-                        Player.SendInfoMessage($"Your order has placed for a {requestedFood}! Please seat yourself and wait for a chef to prepare your food!");
-                        return;
-                    }
-                    if (requestedFood == "ale" || requestedFood == "beer" || requestedFood == "booze")
-                    {
-                        requestedFood = "Ale";
-                        price = 3;
-                        if (SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance < 6)
-                        {
-                            Player.SendErrorMessage("You do not have enough dollas to order this food! (6 $ needed)");
-                            return;
-                        }
-
-                        SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance -= 6;
-                        var order = new Tuple<TSPlayer, string>(Player, requestedFood);
-                        orders.Add(order);
-                        SendToChefs(0, order);
-                        Player.SendInfoMessage($"Your order has placed for a {requestedFood}! Please seat yourself and wait for a chef to prepare your food!");
-                        return;
                     }
                     args.Player.SendErrorMessage("That food item does not exist! Check out our menu with /menu");
                     return;

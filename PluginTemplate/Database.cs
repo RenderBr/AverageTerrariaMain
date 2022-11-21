@@ -111,7 +111,7 @@ namespace AverageTerrariaSurvival
                     var prefix = reader.Get<int>("Prefix");
 
 
-                    PluginTemplate.AvMain._donatedItems.donations.Add(new DonatedItem(actualId, itemID, Quantity, prefix));
+                    AverageTerrariaMain.AvMain._donatedItems.donations.Add(new DonatedItem(actualId, itemID, Quantity, prefix));
 
                     
                 }
@@ -126,7 +126,7 @@ namespace AverageTerrariaSurvival
                     var owner = reader.Get<string>("Owner");
 
 
-                    PluginTemplate.AvMain._clans.allClans.Add(new Clan(actualId, name, new ClanMembers(), owner));
+                    AverageTerrariaMain.AvMain._clans.allClans.Add(new Clan(actualId, name, new ClanMembers(), owner));
 
 
                 }
@@ -141,7 +141,7 @@ namespace AverageTerrariaSurvival
                     var rname = reader.Get<string>("RegionName");
 
 
-                    PluginTemplate.AvMain._clans.FindClan(name).regions.Add(rname);
+                    AverageTerrariaMain.AvMain._clans.FindClan(name).regions.Add(rname);
 
 
                 }
@@ -157,11 +157,11 @@ namespace AverageTerrariaSurvival
                     var role = reader.Get<int>("Role");
                     var joined = reader.Get<DateTime>("JoinDate");
 
-                    PluginTemplate.AvMain._clans.FindClan(clanName).members.members.Add(new ClanMember(actualId, clanName, memberName, role, joined));
+                    AverageTerrariaMain.AvMain._clans.FindClan(clanName).members.members.Add(new ClanMember(actualId, clanName, memberName, role, joined));
 
-                    if (PluginTemplate.AvMain.Players.GetByUsername(memberName) != null)
+                    if (AverageTerrariaMain.AvMain.Players.GetByUsername(memberName) != null)
                     {
-                        PluginTemplate.AvMain.Players.GetByUsername(memberName).clan = clanName;
+                        AverageTerrariaMain.AvMain.Players.GetByUsername(memberName).clan = clanName;
                     }
                 }
             }
