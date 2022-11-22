@@ -14,7 +14,7 @@ jobs:
       with:
         dotnet-version: '${{ matrix.dotnet-version }}'
     - name: SimpleEcon
-      run: dotnet add package "C:\Users\Julian\Documents\GitHub\SimpleEcon\SimpleEcon\bin\Debug\net6.0\SimpleEcon.dll"
+      run: dotnet add package SimpleEcon -s "C:\Users\Julian\Documents\GitHub\SimpleEcon\SimpleEcon\bin\Debug\net6.0\SimpleEcon.dll"
     - name: Install Dependencies
       run: dotnet restore
     - name: Go to directory
