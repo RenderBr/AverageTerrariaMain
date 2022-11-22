@@ -13,8 +13,9 @@ jobs:
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: '${{ matrix.dotnet-version }}'
-    - name: Install dependencies
+    - name: SimpleEcon
       run: dotnet add package C:\Users\Julian\Documents\GitHub\SimpleEcon\SimpleEcon\bin\Debug\net6.0\SimpleEcon.dll
+    - name: Install Dependencies
       run: dotnet restore
     - name: Go to directory
       run: 'cd "C:\Users\Julian\Documents\GitHub\AverageTerrariaMain"'
