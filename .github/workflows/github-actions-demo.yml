@@ -1,9 +1,10 @@
 name: Build AverageTerrariaSurvival
-run-name: ${{ github.actor }}'s Plugin Base for Survival
+
 on: [push]
+
 jobs:
   build:
-  
+
     runs-on: self-hosted
     strategy:
       matrix:
@@ -11,11 +12,18 @@ jobs:
 
       steps:
         - uses: actions/checkout/@v3
-        - run: cd "C:\Users\Julian\Documents\GitHub\AverageTerrariaMain"
-        - run: dotnet build
-        uses: actions/upload-artifact@v3
-        with:
-          name: AverageTerrariaSurvival latest
-          path: avs-latest
+        - name: Directorize
+          uses: actions/setup-dotnet@v3
+          with:
+            dotnet-version: ${{ matrix.dotnet-version }}
+        - name: Go to directory
+          run: cd "C:\Users\Julian\Documents\GitHub\AverageTerrariaMain"
+        - name: Build
+          run: dotnet build
+        - name: Upload
+          uses: actions/upload-artifact@v3
+          with:
+            name: AverageTerrariaSurvival latest
+            path: avs-latest
         # Use always() to always run this step to publish test results when there are test failures
         if: ${{ always() }}
