@@ -1512,47 +1512,47 @@ namespace AverageTerrariaMain
                     Random r = new Random();
                     var noFurtherdrops = false;
 
-                    tile.Player.GiveItem(ItemID.Wood, 250);
-                    tile.Player.GiveItem(ItemID.Acorn, 25);
+                    tile.Player.GiveItem(ItemID.Wood, 100);
+                    tile.Player.GiveItem(ItemID.Acorn, 10);
 
-                    if (r.Next(1, 26) == 25)
+                    if (r.Next(1, 31) == 30)
                     {
                        tile.Player.GiveItem(ItemID.FalconBlade, 1, PrefixID.Legendary);
                         noFurtherdrops = true;
                     }
 
-                    if(r.Next(1, 6) == 5 && noFurtherdrops == false)
+                    if(r.Next(1, 11) == 10 && noFurtherdrops == false)
                     {
                         tile.Player.GiveItem(ItemID.AppleJuice, 1);
                         noFurtherdrops = true;
                     }
 
 
-                    if (r.Next(1, 6) == 5 && noFurtherdrops == false)
+                    if (r.Next(1, 11) == 10 && noFurtherdrops == false)
                     {
                         tile.Player.GiveItem(ItemID.Peach, 1);
                         noFurtherdrops = true;
                     }
 
-                    if (r.Next(1, 6) == 5 && noFurtherdrops == false)
+                    if (r.Next(1, 11) == 10 && noFurtherdrops == false)
                     {
                         tile.Player.GiveItem(ItemID.Lemon, 1);
                         noFurtherdrops = true;
                     }
 
-                    if (r.Next(1, 6) == 5 && noFurtherdrops == false)
+                    if (r.Next(1, 11) == 10 && noFurtherdrops == false)
                     {
                         tile.Player.GiveItem(ItemID.Grapefruit, 1);
                         noFurtherdrops = true;
                     }
 
-                    if (r.Next(1, 6) == 5 && noFurtherdrops == false)
+                    if (r.Next(1, 11) == 10 && noFurtherdrops == false)
                     {
                         tile.Player.GiveItem(ItemID.Apple, 1);
                         noFurtherdrops = true;
                     }
 
-                    if (r.Next(1, 6) == 5 && noFurtherdrops == false)
+                    if (r.Next(1, 11) == 10 && noFurtherdrops == false)
                     {
                         tile.Player.GiveItem(ItemID.Apricot, 1);
                         noFurtherdrops = true;
