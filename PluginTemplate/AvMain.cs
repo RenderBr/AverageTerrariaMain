@@ -1536,7 +1536,25 @@ namespace AverageTerrariaMain
 
                     if (r.Next(1, 6) == 5 && noFurtherdrops == false)
                     {
-                        tile.Player.GiveItem(ItemID.Grapes, 1);
+                        tile.Player.GiveItem(ItemID.Lemon, 1);
+                        noFurtherdrops = true;
+                    }
+
+                    if (r.Next(1, 6) == 5 && noFurtherdrops == false)
+                    {
+                        tile.Player.GiveItem(ItemID.Grapefruit, 1);
+                        noFurtherdrops = true;
+                    }
+
+                    if (r.Next(1, 6) == 5 && noFurtherdrops == false)
+                    {
+                        tile.Player.GiveItem(ItemID.Apple, 1);
+                        noFurtherdrops = true;
+                    }
+
+                    if (r.Next(1, 6) == 5 && noFurtherdrops == false)
+                    {
+                        tile.Player.GiveItem(ItemID.Apricot, 1);
                         noFurtherdrops = true;
                     }
 
