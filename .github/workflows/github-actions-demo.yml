@@ -6,14 +6,16 @@ jobs:
     runs-on: self-hosted
     strategy:
       matrix:
-        dotnet-version:
-          - '6.0'
+        dotnet-version: ['6.0']
     steps:
     - uses: actions/checkout@v3
     - name: Directorize
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: '${{ matrix.dotnet-version }}'
+    - name: Install dependencies
+      run: dotnet add package C:\Users\Julian\Documents\GitHub\SimpleEcon\SimpleEcon\bin\Debug\net6.0\SimpleEcon.dll
+      run: dotnet restore
     - name: Go to directory
       run: 'cd "C:\Users\Julian\Documents\GitHub\AverageTerrariaMain"'
     - name: Build
