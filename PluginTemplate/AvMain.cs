@@ -1517,7 +1517,7 @@ namespace AverageTerrariaMain
 
                     if (r.Next(1, 26) == 25)
                     {
-                       tile.Player.GiveItem(ItemID.PearlwoodSword, 1, PrefixID.Legendary);
+                       tile.Player.GiveItem(ItemID.FalconBlade, 1, PrefixID.Legendary);
                         noFurtherdrops = true;
                     }
 
