@@ -14,7 +14,7 @@ jobs:
       with:
         dotnet-version: '${{ matrix.dotnet-version }}'
     - name: SimpleEcon
-      run: dotnet add package SimpleEcon -s https://github.com/Average-Org/SimpleEcon/releases/download/1.0.2/SimpleEcon.dll
+      run: dotnet add reference https://github.com/Average-Org/SimpleEcon/releases/download/1.0.2/SimpleEcon.dll
     - name: Install Dependencies
       run: dotnet restore
     - name: Go to directory
