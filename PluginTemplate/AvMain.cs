@@ -1694,14 +1694,13 @@ namespace AverageTerrariaMain
 
             foreach(ClanMember cm in clanMembers)
             {
-                if(TSPlayer.FindByNameOrID(cm.memberName)[0] == null)
+
+                if (TSPlayer.FindByNameOrID(cm.memberName).Count == 0)
                 {
                     continue;
                 }
-                else
-                {
-                    TSPlayer.FindByNameOrID(cm.memberName)[0].SendMessage($"[{playersClan}] {args.Player.Name}: {message}", Color.LightGreen);
-                }
+
+                TSPlayer.FindByNameOrID(cm.memberName)[0]?.SendMessage($"[{playersClan}] {args.Player.Name}: {message}", Color.LightGreen);
 
             }
 
