@@ -21,5 +21,5 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: AverageTerrariaSurvival latest
-        path: AverageTerrariaMain/AverageTerrariaMain/Debug/Debug/ServerPlugins/net6.0
+        path: /home/runner/work/AverageTerrariaMain/AverageTerrariaMain/Debug/Debug/ServerPlugins/net6.0/
       if: '${{ always() }}'
