@@ -3,7 +3,7 @@ name: Build AverageTerrariaSurvival
   - push
 jobs:
   build:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         dotnet-version: ['6.0']
