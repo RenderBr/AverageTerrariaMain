@@ -677,14 +677,10 @@ namespace AverageTerrariaMain
             }
 
             Player.SendInfoMessage("Menu for The Chef's Diner");
-            Player.SendInfoMessage("Golden Delight - $120");
-            Player.SendInfoMessage("Hamburger - $6");
-            Player.SendInfoMessage("Fries - $3");
-            Player.SendInfoMessage("Cream Soda - $4");
-            Player.SendInfoMessage("Coffee - $3");
-            Player.SendInfoMessage("Hot Dog - $6");
-            Player.SendInfoMessage("(NEW) Beer - $3");
-            Player.SendInfoMessage("(NEW) Apple Pie - $6");
+            foreach(Food food in Config.Menu)
+            {
+                Player.SendInfoMessage($"{food.terrariaName} - ${food.price}");
+            }
 
             if (restaurantOpen == true)
             {
