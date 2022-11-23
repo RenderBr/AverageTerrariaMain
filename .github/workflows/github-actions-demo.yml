@@ -15,13 +15,11 @@ jobs:
         dotnet-version: '${{ matrix.dotnet-version }}'
     - name: Install Dependencies
       run: dotnet restore
-    - name: Go to directory
-      run: 'cd "C:\Users\Julian\Documents\GitHub\AverageTerrariaMain"'
     - name: Build
       run: dotnet build
     - name: Upload
       uses: actions/upload-artifact@v3
       with:
         name: AverageTerrariaSurvival latest
-        path: /github/workspace/AverageTerrariaMain/AverageTerrariaMain/Debug/Debug/ServerPlugins/net6.0
+        path: AverageTerrariaMain/AverageTerrariaMain/Debug/Debug/ServerPlugins/net6.0
       if: '${{ always() }}'
