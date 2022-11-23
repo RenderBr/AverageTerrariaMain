@@ -139,9 +139,10 @@ namespace AverageTerrariaMain
         {
             if(restaurantOpen == false)
             {
-                restaurantOpen = true;
                 var lobbyRegion = TShock.Regions.GetRegionByName("lobby").Area;
-                var regionSize = (lobbyRegion.Width*lobbyRegion.Height);
+                var regionSize = (lobbyRegion.Width * lobbyRegion.Height);
+                restaurantOpen = true;
+
 
                 for(var i = 0; i < regionSize; i++)
                 {
@@ -1476,7 +1477,7 @@ namespace AverageTerrariaMain
             }
         }
 
-        //Custom Tile Behaviours
+        #region Custom Tile Behaviours
         void onTileEdit(object sender, GetDataHandlers.TileEditEventArgs tile)
         {
 
@@ -1644,8 +1645,9 @@ namespace AverageTerrariaMain
 
 
         }
+        #endregion
 
-        //Old tree handler
+        #region Old Tree Handler (ready to be used if wanted)
         void handleTree(int x, int y, TSPlayer Player)
         {
             WorldGen.KillTile(x, y);
@@ -1660,6 +1662,7 @@ namespace AverageTerrariaMain
 
             }
         }
+        #endregion
 
         void ClanChat(CommandArgs args)
         {
