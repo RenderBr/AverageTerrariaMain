@@ -1716,9 +1716,10 @@ namespace AverageTerrariaMain
 
 
             int convertedAmount = int.Parse(args.Parameters[0]);
-            if (convertedAmount < 0)
+            if (convertedAmount <= 0)
             {
                 args.Player.SendErrorMessage("Value cannot be negative!");
+                return;
             }
             int originalAmount = convertedAmount;
             int plat = 0;
