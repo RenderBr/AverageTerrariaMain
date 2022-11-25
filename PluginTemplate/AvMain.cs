@@ -35,6 +35,10 @@ namespace AverageTerrariaMain
         public static DonatedItems _donatedItems = new DonatedItems();
         public static Clans _clans = new Clans();
 
+        #region server challenges
+
+        #endregion
+
         #region restaurant variables
         public static bool restaurantOpen = false;
         public static string restaurantName = "The Chef's Diner";
@@ -885,6 +889,9 @@ namespace AverageTerrariaMain
             Commands.ChatCommands.Add(new Command("clan.use", Clan, "clan"));
             Commands.ChatCommands.Add(new Command("av.admin", openRestaurant, "openres", "resopen", "restaurant"));
             Commands.ChatCommands.Add(new Command("av.bounty", Menu, "menu"));
+            Commands.ChatCommands.Add(new Command("av.bounty", Challenge, "challenges"));
+            Commands.ChatCommands.Add(new Command("av.bounty", CurrentChallenge, "currentchallenge"));
+
             Commands.ChatCommands.Add(new Command("av.bounty", Menu, "order"));
             Commands.ChatCommands.Add(new Command("av.bounty", Prep, "prep", "prepare"));
             Commands.ChatCommands.Add(new Command("av.bounty", Cook, "cook"));
@@ -906,6 +913,62 @@ namespace AverageTerrariaMain
 
             dbManager.InitialSync();
             AntiRush();
+
+        }
+
+        private void CurrentChallenge(CommandArgs args)
+        {
+            if(args.Player.IsLoggedIn == false)
+            {
+                args.Player.SendErrorMessage("You must be logged-in to use this command! :>");
+                return;
+            }
+            var chal = ChallengeMaster.GetMostRecentChallenge(Config);
+            
+            
+            if(dbManager.HasUserCompletedChallenge(chal.internalId, args.Player))
+            {
+                args.Player.SendMessage("You have already completed the latest challenge! Good job! :>", Color.LightGreen);
+                args.Player.SendMessage($"{chal.name} - {chal.desc} ✓ (${chal.totalValue} value)", Color.Goldenrod);
+                return;
+            }
+            else
+            {
+                args.Player.SendMessage($"New Challenge: {chal.name}", Color.Goldenrod);
+                args.Player.SendMessage($"{chal.desc}", Color.LightGray);
+                args.Player.SendMessage($"If completed you will get: {chal.totalValue} dollas worth of rewards!", Color.Goldenrod);
+                return;
+            }
+        }
+
+        private void Challenge(CommandArgs args)
+        {
+
+            if(Config.challenges.Count > 0)
+            {
+                args.Player.SendMessage("List of Challenges!", Color.Orange);
+                foreach (Challenge chal in Config.challenges)
+                {
+                    var userCompleted = dbManager.HasUserCompletedChallenge(chal.internalId, args.Player);
+
+                    if(userCompleted == true)
+                    {
+                        args.Player.SendMessage($"{chal.name} - {chal.desc} ✓", Color.LightGreen);
+                    }
+                    else
+                    {
+                        args.Player.SendMessage($"{chal.name} - {chal.desc} -", Color.OrangeRed);
+                    }
+
+                }
+                args.Player.SendMessage($"Use /currentchallenge to view the current challenge!", Color.Goldenrod);
+                return;
+            }
+            else
+            {
+                args.Player.SendErrorMessage("No challenges are implemented yet!");
+                return;
+            }
 
         }
         #region Donate & ItemToDollas Command

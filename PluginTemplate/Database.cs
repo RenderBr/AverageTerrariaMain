@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
+using TShockAPI;
 using TShockAPI.DB;
 
 namespace AverageTerrariaSurvival
@@ -40,6 +41,12 @@ namespace AverageTerrariaSurvival
                 );
             sqlCreator.EnsureTableStructure(clanRegions);
 
+            var challenges = new SqlTable("Challenges",
+            new SqlColumn("Id", MySqlDbType.Int32) { Primary = true, AutoIncrement = true },
+            new SqlColumn("ChallengeId", MySqlDbType.Int32),
+            new SqlColumn("PlayerName", MySqlDbType.String)
+            );
+            sqlCreator.EnsureTableStructure(challenges);
 
             var clanMembers = new SqlTable("ClanMembers",
                 new SqlColumn("Id", MySqlDbType.Int32) { Primary = true, AutoIncrement = true },
@@ -65,6 +72,11 @@ namespace AverageTerrariaSurvival
         public bool InsertRegion(string regionName, Clan clan)
         {
             return _db.Query("INSERT INTO ClanRegions (ClanName, RegionName) VALUES (@0, @1)", clan.name, regionName) != 0;
+        }
+
+        public bool InsertChallenge(string challengeId, TSPlayer Player)
+        {
+            return _db.Query("INSERT INTO Challenges (ChallengeId, PlayerName) VALUES (@0, @1)", challengeId, Player.Name) != 0;
         }
 
         public bool InsertMember(ClanMember cm)
@@ -96,6 +108,23 @@ namespace AverageTerrariaSurvival
 
             }
             return _db.Query("DELETE FROM Clans WHERE Id = @0", clan.dbId) != 0;
+        }
+
+        public bool HasUserCompletedChallenge(int c, TSPlayer p)
+        {
+            using (var reader = _db.QueryReader($"SELECT * FROM Challenges WHERE playerName={p.Name}"))
+            {
+                while (reader.Read())
+                {
+                    var challengeId = reader.Get<int>("ChallengeId");
+                    var playerName = reader.Get<string>("PlayerName");
+
+
+                    return true;
+
+                }
+            }
+            return false;
         }
 
         //not just for players anymore
