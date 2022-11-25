@@ -12,7 +12,7 @@ namespace AverageTerrariaMain
 {
 	public class Config
 	{
-		public string infoMessage { get; set; } = "Insert text here!";
+		public List<string> infoMessages { get; set; } = new List<string>() { "Add information here!"};
 
 		public List<Challenge> challenges { get; set; } = new List<Challenge>();
 

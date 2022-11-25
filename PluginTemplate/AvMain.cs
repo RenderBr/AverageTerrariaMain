@@ -2287,7 +2287,30 @@ namespace AverageTerrariaMain
 
         void infoCommand(CommandArgs args)
         {
-            args.Player.SendSuccessMessage(Config.infoMessage);
+            if(args.Parameters.Count == 0)
+            {
+                args.Player.SendMessage(Config.infoMessages[0], Color.White);
+                args.Player.SendMessage("Use /info 2 for more information!", Color.LightGreen);
+                return;
+            }
+            
+            var arg = int.Parse(args.Parameters[0]);
+
+            if(arg != null)
+            {
+                args.Player.SendMessage(Config.infoMessages[arg - 1], Color.White);
+                if(arg == Config.infoMessages.Count)
+                {
+                    args.Player.SendMessage($"Use /info {arg+1} for more information!", Color.LightGreen);
+                }
+                return;
+            }
+            else
+            {
+                args.Player.SendErrorMessage("Invalid argument! Ex. /info 2");
+                return;
+            }
+
         }
 
         void discordInvite(CommandArgs args)
