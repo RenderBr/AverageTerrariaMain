@@ -2299,7 +2299,7 @@ namespace AverageTerrariaMain
             if(arg != null)
             {
                 args.Player.SendMessage(Config.infoMessages[arg - 1], Color.White);
-                if(arg == Config.infoMessages.Count)
+                if(arg != Config.infoMessages.Count)
                 {
                     args.Player.SendMessage($"Use /info {arg+1} for more information!", Color.LightGreen);
                 }
