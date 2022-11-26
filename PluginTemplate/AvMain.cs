@@ -133,12 +133,12 @@ namespace AverageTerrariaMain
                 return;
 			}
 			
-			if(p.blocksBroken.Count < 100)
+			if(p.blocksBroken.Count < 250)
 			{
 				return;
             }
 
-			if(p.blocksBroken.Count(x => DateTime.Now.Subtract(x.brokenAt).TotalSeconds < 30) > 100)
+			if(p.blocksBroken.Count(x => DateTime.Now.Subtract(x.brokenAt).TotalSeconds < 30) > 250)
 			{
 				TShock.UserAccounts.SetUserGroup(tile.Player.Account, "possiblegriefer");
                 TSPlayer.All.SendMessage($"{tile.Player.Name} has destroyed a lot of blocks in the last 30 seconds and has been marked as a griefer! Please contact a staff member if you believe this was a false detection! (/discord)", Color.Red);
@@ -575,13 +575,9 @@ namespace AverageTerrariaMain
 							TSPlayer.Server.SpawnNPC(npc.type, npc.FullName, amount, args.Player.TileX, args.Player.TileY);
 							spawnName = "Queen Slime";
 							break;
-						case "lunatic":
-						case "lunatic cultist":
-						case "cultist":
-						case "lc":
-							npc.SetDefaults(439);
-							TSPlayer.Server.SpawnNPC(npc.type, npc.FullName, amount, args.Player.TileX, args.Player.TileY);
-							spawnName = "Lunatic Cultist";
+						case "average":
+							args.Player.KillPlayer();
+							spawnName = "Average";
 							break;
 						case "betsy":
 							npc.SetDefaults(551);
