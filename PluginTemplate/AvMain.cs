@@ -22,6 +22,7 @@ using Terraria.GameContent.NetModules;
 using Terraria.Net;
 using ClientApi.Networking;
 using TShockAPI.Hooks;
+using System.Linq;
 
 #endregion
 
@@ -72,9 +73,11 @@ namespace AverageTerrariaMain
 			ServerApi.Hooks.ServerChat.Register(this, onChat);
 			ServerApi.Hooks.NetGreetPlayer.Register(this, onGreet);
 			ServerApi.Hooks.GameUpdate.Register(this, onUpdate);
+			
 			On.Terraria.NPC.DoDeathEvents_CelebrateBossDeath += CelebrateBossDeath;
 			TShockAPI.Hooks.RegionHooks.RegionEntered += onRegionEnter;
 			TShockAPI.Hooks.RegionHooks.RegionLeft += onRegionLeave;
+			TShockAPI.GetDataHandlers.TileEdit += onTileEdit;
       switch (TShock.Config.Settings.StorageType.ToLower())
       {
           case "sqlite":
@@ -93,6 +96,58 @@ namespace AverageTerrariaMain
         {
 			return;
         }
+        #endregion
+
+        #region AntiGrief
+
+        void updateTilesForAll(GetDataHandlers.TileEditEventArgs tile)
+        {
+            foreach (Player player in Main.player)
+            {
+                if (player == null)
+                {
+                    continue;
+                }
+
+                TSPlayer.FindByNameOrID(player.whoAmI.ToString())[0].SendTileSquareCentered(tile.Player.TileX, tile.Player.TileY, 32);
+            }
+        }
+
+        public void onTileEdit(object sender, GetDataHandlers.TileEditEventArgs tile)
+		{
+			if (tile.Player.HasPermission("cool"))
+			{
+				return;
+			}
+            AvPlayer p = Players.GetByUsername(tile.Player.Name);
+
+            //block broken
+            if (tile.Action == GetDataHandlers.EditAction.KillTile && tile.EditData == 0)
+			{
+
+                p.blocksBroken.Add(new BrokenBlock());
+			}
+			else
+			{
+
+                return;
+			}
+			
+			if(p.blocksBroken.Count < 100)
+			{
+				return;
+            }
+
+			if(p.blocksBroken.Count(x => DateTime.Now.Subtract(x.brokenAt).TotalSeconds < 30) > 100)
+			{
+				TShock.UserAccounts.SetUserGroup(tile.Player.Account, "possiblegriefer");
+                TSPlayer.All.SendMessage($"{tile.Player.Name} has destroyed a lot of blocks in the last 30 seconds and has been marked as a griefer! Please contact a staff member if you believe this was a false detection! (/discord)", Color.Red);
+				return;
+			}
+
+			return;	
+		}
+
         #endregion
 
         #region onWorldLoad / Command Init
@@ -1145,10 +1200,11 @@ namespace AverageTerrariaMain
 				TShockAPI.Hooks.RegionHooks.RegionEntered -= onRegionEnter;
 				TShockAPI.Hooks.RegionHooks.RegionLeft -= onRegionLeave;
 				ServerApi.Hooks.GameUpdate.Deregister(this, onUpdate);
+                TShockAPI.GetDataHandlers.TileEdit -= onTileEdit;
 
 
-			}
-			base.Dispose(disposing);
+            }
+            base.Dispose(disposing);
         }
         #endregion
 

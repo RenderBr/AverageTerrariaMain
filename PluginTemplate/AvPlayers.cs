@@ -45,6 +45,7 @@ namespace AverageTerrariaMain
         public TSPlayer tsPlayer;
         public bool Online { get { return tsPlayer != null; } }
         public readonly string name;
+        public List<BrokenBlock> blocksBroken = new List<BrokenBlock>();
         public bool isVanished = false;
         public string Group
         {
