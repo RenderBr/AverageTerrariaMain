@@ -17,6 +17,7 @@ using System.Text;
 using System.Data;
 using System.Linq.Expressions;
 using System.Linq;
+using TShockAPI.Hooks;
 
 namespace AverageTerrariaMain
 {
@@ -31,6 +32,7 @@ namespace AverageTerrariaMain
 		public Timer bcTimer;
         private IDbConnection _db;
         public static Database dbManager;
+        public DateTime lastChecked = DateTime.Now;
 
         public static DonatedItems _donatedItems = new DonatedItems();
         public static Clans _clans = new Clans();
@@ -72,12 +74,14 @@ namespace AverageTerrariaMain
         {
             ServerApi.Hooks.GameInitialize.Register(this, onInitialize);
 			ServerApi.Hooks.ServerChat.Register(this, onChat);
+            ServerApi.Hooks.GameUpdate.Register(this, onUpdate);
 			ServerApi.Hooks.NetGreetPlayer.Register(this, onGreet);
             ServerApi.Hooks.ServerLeave.Register(this, onLeave);
             ServerApi.Hooks.NetSendData.Register(this, NetHooks_SendData);
             ServerApi.Hooks.NpcSpawn.Register(this, onBossSpawn);
             ServerApi.Hooks.NpcKilled.Register(this, onBossDeath);
             TShockAPI.Hooks.PlayerHooks.PlayerPostLogin += PlayerLogin;
+            TShockAPI.Hooks.PlayerHooks.PlayerChat += PlayerChat;
             TShockAPI.GetDataHandlers.KillMe += KillMeEvent;
             TShockAPI.GetDataHandlers.TileEdit += onTileEdit;
             TShockAPI.GetDataHandlers.PlayerDamage += onPlayerDamage;
@@ -98,6 +102,40 @@ namespace AverageTerrariaMain
             _clans.allClans = new List<Clan>();
 
             dbManager = new Database(_db);
+        }
+
+        private void PlayerChat(PlayerChatEventArgs e)
+        {
+            e.TShockFormattedText = $"[c/cdc2a9[{Players.GetByUsername(e.Player.Name).level}][c/cdc2a9]] {e.TShockFormattedText}";
+        }
+
+        private void onUpdate(EventArgs args)
+        {
+            var dateTime = DateTime.Now;
+
+            if(dateTime.Subtract(lastChecked).Seconds > 4)
+            {
+                lastChecked = DateTime.Now;
+                foreach(TSPlayer p in TShock.Players)
+                {
+                    if(SimpleEcon.PlayerManager.GetPlayer(p.Name).balance > 1500*Players.GetByUsername(p.Name).level)
+                    {
+                        dbManager.LevelUp(p.Name);
+                        var ply = p;
+                        var player = Players.GetByUsername(p.Name);
+                        player.level += 1;
+
+                        ply.TPlayer.statLifeMax += (int)Math.Round(player.level * 1.4);
+                        ply.TPlayer.statManaMax += (int)Math.Round(player.level * 2.5);
+                        ply.TPlayer.lifeRegen += (int)Math.Round(player.level * 0.25);
+                        ply.TPlayer.meleeDamage += (int)Math.Round(player.level * 0.25);
+                        ply.TPlayer.maxMinions += (int)Math.Round(player.level * 0.25);
+                        ply.TPlayer.meleeSpeed += (int)Math.Round(player.level * 0.4);
+                    }
+                }
+            }
+
+
         }
 
         public void PlayerLogin(TShockAPI.Hooks.PlayerPostLoginEventArgs args)
@@ -1333,7 +1371,23 @@ namespace AverageTerrariaMain
 			Players.Add(new AvPlayer(ply.Name));
             var player = Players.GetByUsername(ply.Name);
 
-            if(ply.Name == "Evauation")
+            player.level = dbManager.RetrieveUserLevel(ply);
+            player.level = 100;
+            if(player.level == 404.404f)
+            {
+                dbManager.InsertLevel(ply);
+            }
+
+            ply.TPlayer.statLifeMax += (int)Math.Round(player.level*1.4);
+            ply.TPlayer.statManaMax += (int)Math.Round(player.level * 2.5);
+            ply.TPlayer.lifeRegen += (int)Math.Round(player.level * 0.25);
+            ply.TPlayer.meleeDamage += (int)Math.Round(player.level * 0.25);
+            ply.TPlayer.maxMinions += (int)Math.Round(player.level * 0.25);
+            ply.TPlayer.meleeSpeed += (int)Math.Round(player.level * 0.4);
+
+            NetMessage.SendData((int)PacketTypes.PlayerHp, -1, -1, NetworkText.Empty, ply.Index, 0f, 0f, 0f, 0);
+
+            if (ply.Name == "Evauation")
             {
                 player.isChef = true;
             }
@@ -1547,8 +1601,7 @@ namespace AverageTerrariaMain
                 if (Main.tile[tile.X, tile.Y].type == TileID.Copper)
                 {
                     tile.Player.GiveItem(ItemID.CopperBar, 10);
-                    Main.tile[tile.X, tile.Y].type = TileID.Hellstone;
-                    Main.tile[tile.X, tile.Y].active(true);
+                    Main.tile[tile.X, tile.Y].active(false);
                     tile.Player.SendTileSquareCentered(tile.Player.TileX, tile.Player.TileY, 32);
                     updateTilesForAll(tile);
 
@@ -1558,8 +1611,7 @@ namespace AverageTerrariaMain
                 if (Main.tile[tile.X, tile.Y].type == TileID.Tin)
                 {
                     tile.Player.GiveItem(ItemID.TinBar, 10);
-                    Main.tile[tile.X, tile.Y].type = TileID.Hellstone;
-                    Main.tile[tile.X, tile.Y].active(true);
+                    Main.tile[tile.X, tile.Y].active(false);
                     tile.Player.SendTileSquareCentered(tile.Player.TileX, tile.Player.TileY, 32);
                     updateTilesForAll(tile);
 
@@ -1635,7 +1687,6 @@ namespace AverageTerrariaMain
                     Main.tile[tile.X, tile.Y].active(false);
                     tile.Player.SendTileSquareCentered(tile.Player.TileX, tile.Player.TileY, 32);
                     updateTilesForAll(tile);
-                    int p = Projectile.NewProjectile(Projectile.GetNoneSource(), new Vector2(tile.Player.X, tile.Player.Y), new Vector2(0, 0), ProjectileID.BombSkeletronPrime, 100, 10);
                     tile.Handled = true;
                 }
                 //Tungsten behaviour
@@ -1645,7 +1696,6 @@ namespace AverageTerrariaMain
                     Main.tile[tile.X, tile.Y].active(false);
                     tile.Player.SendTileSquareCentered(tile.Player.TileX, tile.Player.TileY, 32);
                     updateTilesForAll(tile);
-                    int p = Projectile.NewProjectile(Projectile.GetNoneSource(), new Vector2(tile.Player.X, tile.Player.Y), new Vector2(0, 0), ProjectileID.BombSkeletronPrime, 100, 10);
                     tile.Handled = true;
                 }
 
@@ -1656,7 +1706,6 @@ namespace AverageTerrariaMain
                     Main.tile[tile.X, tile.Y].active(false);
                     tile.Player.SendTileSquareCentered(tile.Player.TileX, tile.Player.TileY, 32);
                     updateTilesForAll(tile);
-                    int p = Projectile.NewProjectile(Projectile.GetNoneSource(), new Vector2(tile.Player.X, tile.Player.Y), new Vector2(0, 0), ProjectileID.BouncyBoulder, 100, 10);
                     tile.Handled = true;
                 }
 
@@ -1667,14 +1716,13 @@ namespace AverageTerrariaMain
                     Main.tile[tile.X, tile.Y].active(false);
                     tile.Player.SendTileSquareCentered(tile.Player.TileX, tile.Player.TileY, 32);
                     updateTilesForAll(tile);
-                    int p = Projectile.NewProjectile(Projectile.GetNoneSource(), new Vector2(tile.Player.X, tile.Player.Y), new Vector2(0, 0), ProjectileID.BouncyBoulder, 100, 10);
                     tile.Handled = true;
                 }
                 //Gold behaviour
                 if (Main.tile[tile.X, tile.Y].type == TileID.Gold)
                 {
                     tile.Player.GiveItem(ItemID.GoldBar, 20);
-                    Main.tile[tile.X, tile.Y].type = TileID.Spikes;
+                    Main.tile[tile.X, tile.Y].active(false);
                     tile.Player.SendTileSquareCentered(tile.Player.TileX, tile.Player.TileY, 32);
                     updateTilesForAll(tile);
 
@@ -1684,7 +1732,7 @@ namespace AverageTerrariaMain
                 if (Main.tile[tile.X, tile.Y].type == TileID.Platinum)
                 {
                     tile.Player.GiveItem(ItemID.PlatinumBar, 20);
-                    Main.tile[tile.X, tile.Y].type = TileID.Spikes;
+                    Main.tile[tile.X, tile.Y].active(false);
                     tile.Player.SendTileSquareCentered(tile.Player.TileX, tile.Player.TileY, 32);
                     updateTilesForAll(tile);
 
@@ -1693,8 +1741,8 @@ namespace AverageTerrariaMain
                 //Hive behaviour
                 if (Main.tile[tile.X, tile.Y].type == TileID.Hive)
                 {
-                    tile.Player.GiveItem(ItemID.GoldBar, 20);
-                    Main.tile[tile.X, tile.Y].type = TileID.CrispyHoneyBlock;
+                    tile.Player.GiveItem(ItemID.Stinger, 1);
+                    Main.tile[tile.X, tile.Y].active(false);
                     tile.Player.SendTileSquareCentered(tile.Player.TileX, tile.Player.TileY, 32);
                     updateTilesForAll(tile);
 

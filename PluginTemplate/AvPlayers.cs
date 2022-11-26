@@ -59,6 +59,7 @@ namespace AverageTerrariaMain
         public bool prepping = false;
         public bool cooking = false;
         public bool plating = false;
+        public float level = 0;
         public bool serving = false;
 
         public string Group

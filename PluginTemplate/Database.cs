@@ -27,6 +27,15 @@ namespace AverageTerrariaSurvival
                 );
             sqlCreator.EnsureTableStructure(donatedItems);
 
+
+            var playerStats = new SqlTable("PlayerStats",
+                new SqlColumn("Id", MySqlDbType.Int32) { Primary = true, AutoIncrement = true },
+                new SqlColumn("PlayerName", MySqlDbType.String),
+                new SqlColumn("Level", MySqlDbType.Float),
+                new SqlColumn("Xp", MySqlDbType.Float)
+                );
+            sqlCreator.EnsureTableStructure(playerStats);
+
             var clans = new SqlTable("Clans",
                 new SqlColumn("Id", MySqlDbType.Int32) { Primary = true, AutoIncrement = true },
                 new SqlColumn("ClanName", MySqlDbType.String),
@@ -84,11 +93,25 @@ namespace AverageTerrariaSurvival
             return _db.Query("INSERT INTO ClanMembers (ClanName, MemberName, Role, JoinDate) VALUES (@3, @0, @1, @2)", cm.memberName, cm.role, cm.joined, cm.clanName) != 0;
         }
 
+        public bool InsertLevel(TSPlayer tp)
+        {
+            return _db.Query("INSERT INTO PlayerStats (PlayerName, Level) VALUES (@0, 0)", tp.Name) != 0;
+        }
+
+
         public bool UpdateMemberRole(string memberName, int role)
         {
             return _db.Query("UPDATE ClanMembers SET Role=@0 WHERE MemberName=@1", memberName, role) != 0;
         }
 
+        public bool LevelUp(string memberName)
+        {
+            return _db.Query("UPDATE PlayerStats SET Level=Level+1 WHERE PlayerName=@0", memberName) != 0;
+        }
+        public bool UpdateXP(string memberName, float xp)
+        {
+            return _db.Query("UPDATE PlayerStats SET xp=@1 WHERE PlayerName=@0", memberName, xp) != 0;
+        }
 
         public bool DeleteItem(DonatedItem item)
         {
@@ -126,6 +149,23 @@ namespace AverageTerrariaSurvival
             }
             return false;
         }
+
+
+        public float RetrieveUserLevel(TSPlayer p)
+        {
+            using (var reader = _db.QueryReader("SELECT * FROM PlayerStats WHERE PlayerName=@0", p.Name))
+            {
+                while (reader.Read())
+                {
+                    var level = reader.Get<float>("Level");
+
+                    return level;
+
+                }
+            }
+            return 404.404f;
+        }
+
 
         //not just for players anymore
         public void InitialSync()
