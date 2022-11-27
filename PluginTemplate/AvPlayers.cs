@@ -28,6 +28,17 @@ namespace AverageTerrariaMain
             return _players.FirstOrDefault(p => p.name == username);
         }
 
+        public float LevelUp(string username)
+        {
+            return _players.FirstOrDefault(p => p.name == username).level++;
+        }
+
+        public float ManipulateLevel(string username, int level)
+        {
+            return _players.FirstOrDefault(p => p.name == username).level = (float)level;
+        }
+
+
         public IEnumerable<AvPlayer> GetListByUsername(string username)
         {
             return _players.Where(p => p.name.ToLowerInvariant().Contains(username.ToLowerInvariant()));

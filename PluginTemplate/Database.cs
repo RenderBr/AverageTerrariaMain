@@ -108,6 +108,10 @@ namespace AverageTerrariaSurvival
         {
             return _db.Query("UPDATE PlayerStats SET Level=Level+1 WHERE PlayerName=@0", memberName) != 0;
         }
+        public bool ManipulateLevel(string memberName, int level)
+        {
+            return _db.Query("UPDATE PlayerStats SET Level=@1 WHERE PlayerName=@0", memberName, level) != 0;
+        }
         public bool UpdateXP(string memberName, float xp)
         {
             return _db.Query("UPDATE PlayerStats SET xp=@1 WHERE PlayerName=@0", memberName, xp) != 0;

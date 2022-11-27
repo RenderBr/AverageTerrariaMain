@@ -18,6 +18,7 @@ using System.Data;
 using System.Linq.Expressions;
 using System.Linq;
 using TShockAPI.Hooks;
+using Steamworks;
 
 namespace AverageTerrariaMain
 {
@@ -59,7 +60,7 @@ namespace AverageTerrariaMain
         public bool canSummonSkeletron = false;
         #endregion
         public override string Name => "Average's Survival";
-        public override Version Version => new Version(1, 0, 0);
+        public override System.Version Version => new System.Version(1, 0, 0);
 
         public Config Config { get; private set; }
 
@@ -106,7 +107,9 @@ namespace AverageTerrariaMain
 
         private void PlayerChat(PlayerChatEventArgs e)
         {
-            e.TShockFormattedText = $"[c/cdc2a9[{Players.GetByUsername(e.Player.Name).level}][c/cdc2a9]] {e.TShockFormattedText}";
+            var c = Utilities.IntToColor((int)Players.GetByUsername(e.Player.Name).level).Hex3();
+
+            e.TShockFormattedText = $"[c/{c}:[{Players.GetByUsername(e.Player.Name).level}][c/{c}:]] {e.TShockFormattedText}";
         }
 
         private void onUpdate(EventArgs args)
@@ -118,19 +121,31 @@ namespace AverageTerrariaMain
                 lastChecked = DateTime.Now;
                 foreach(TSPlayer p in TShock.Players)
                 {
-                    if(SimpleEcon.PlayerManager.GetPlayer(p.Name).balance > 1500*Players.GetByUsername(p.Name).level)
+                    if(p == null)
                     {
+                        continue;
+                    }
+                    if(Players.GetByUsername(p.Name) == null)
+                    {
+                        continue;
+                    }
+                    Redo:
+                    if (Players.GetByUsername(p.Name).level >= 400)
+                    {
+                        continue;
+                    }
+
+                    if (SimpleEcon.PlayerManager.GetPlayer(p.Name).balance >= 1500*Players.GetByUsername(p.Name).level+(Players.GetByUsername(p.Name).level* Players.GetByUsername(p.Name).level))
+                    {
+                        
                         dbManager.LevelUp(p.Name);
                         var ply = p;
+                        var newLevel = Players.LevelUp(p.Name);
                         var player = Players.GetByUsername(p.Name);
-                        player.level += 1;
+                        p.SendMessage($"You have leveled up! You're now level: [c/90EE90:{player.level}]", Color.Orange);
 
-                        ply.TPlayer.statLifeMax += (int)Math.Round(player.level * 1.4);
-                        ply.TPlayer.statManaMax += (int)Math.Round(player.level * 2.5);
-                        ply.TPlayer.lifeRegen += (int)Math.Round(player.level * 0.25);
-                        ply.TPlayer.meleeDamage += (int)Math.Round(player.level * 0.25);
-                        ply.TPlayer.maxMinions += (int)Math.Round(player.level * 0.25);
-                        ply.TPlayer.meleeSpeed += (int)Math.Round(player.level * 0.4);
+                        applyStats(p);
+                        goto Redo;
                     }
                 }
             }
@@ -410,6 +425,42 @@ namespace AverageTerrariaMain
             args.Player.SendMessage($"You have given {player} {quantity} {SimpleEcon.SimpleEcon.config.currencyNamePlural}!", Color.LightGreen);
             TSPlayer.FindByNameOrID(player)[0].SendMessage($"You have been given {quantity} {SimpleEcon.SimpleEcon.config.currencyNamePlural} by {args.Player.Name}!", Color.LightGreen);
 
+        }
+
+        void adminSetDollas(CommandArgs args)
+        {
+            if (args.Parameters.Count <= 0)
+            {
+                args.Player.SendErrorMessage("Invalid arguments! Use this as an example: /setcurrency <player> <quantity>");
+                return;
+            }
+
+            if (args.Parameters.Count == 1)
+            {
+                args.Player.SendErrorMessage($"Invalid arguments! Please enter a quantity: /setcurrency {args.Parameters[0]} <quantity>");
+                return;
+            }
+
+            var player = args.Parameters[0];
+            var quantity = args.Parameters[1];
+            var Nplayer = SimpleEcon.PlayerManager.GetPlayer(player);
+
+            if (Nplayer == null)
+            {
+                args.Player.SendErrorMessage("This player does not exist in the SimpleEcon database!");
+                return;
+            }
+
+            if (int.Parse(quantity) == 0 || quantity == null)
+            {
+                args.Player.SendErrorMessage($"Please enter a quantity as the second parameter. Ex. /setcurrency {player} 1000");
+                return;
+            }
+
+            Nplayer.balance = int.Parse(quantity);
+            args.Player.SendMessage($"You have set {player}'s balance to {quantity} {SimpleEcon.SimpleEcon.config.currencyNamePlural}!", Color.LightGreen);
+            TSPlayer.FindByNameOrID(player)[0].SendMessage($"Your balance has been set to {quantity} {SimpleEcon.SimpleEcon.config.currencyNamePlural} by {args.Player.Name}!", Color.LightGreen);
+            return;
         }
 
         void onBossSpawn(NpcSpawnEventArgs args)
@@ -927,6 +978,9 @@ namespace AverageTerrariaMain
             Commands.ChatCommands.Add(new Command("clan.use", Clan, "clan"));
             Commands.ChatCommands.Add(new Command("av.admin", openRestaurant, "openres", "resopen", "restaurant"));
             Commands.ChatCommands.Add(new Command("av.bounty", Menu, "menu"));
+            Commands.ChatCommands.Add(new Command("av.bounty", Level, "level"));
+            Commands.ChatCommands.Add(new Command("av.admin", SetLevel, "setlevel"));
+
             Commands.ChatCommands.Add(new Command("av.bounty", Challenge, "challenges"));
             Commands.ChatCommands.Add(new Command("av.bounty", CurrentChallenge, "currentchallenge"));
 
@@ -939,7 +993,8 @@ namespace AverageTerrariaMain
             Commands.ChatCommands.Add(new Command("clan.use", MyClan, "myclan", "cinfo", "claninfo"));
             Commands.ChatCommands.Add(new Command("av.donate", Conv, "conv", "convert", "dollastogold"));
 
-            Commands.ChatCommands.Add(new Command("av.admin", adminGiveDollas, "givecurrency", "gc", "givebal", "baladd"));
+            Commands.ChatCommands.Add(new Command("av.admin", adminGiveDollas, "givecurrency", "gc", "givebal", "baladd")); Commands.ChatCommands.Add(new Command("av.admin", adminGiveDollas, "givecurrency", "gc", "givebal", "baladd"));
+            Commands.ChatCommands.Add(new Command("av.admin", adminSetDollas, "setcurrency", "sc", "setbal", "setbalance"));
 
             Commands.ChatCommands.Add(new Command("av.receive", ReceiveDonation, "beg", "receive", "plz"));
 
@@ -952,6 +1007,28 @@ namespace AverageTerrariaMain
             dbManager.InitialSync();
             AntiRush();
 
+        }
+
+        private void SetLevel(CommandArgs args)
+        {
+            if(args.Parameters.Count == 0)
+            {
+                args.Player.SendErrorMessage("Enter a player name. Ex. /setlevel <player> <level>");
+                return;
+            }
+
+            if (args.Parameters.Count == 1)
+            {
+                args.Player.SendErrorMessage($"Enter a level. Ex. /setlevel {args.Parameters[0]} <level>");
+                return;
+            }
+
+            var p = Players.GetByUsername(args.Parameters[0]);
+            var lvl = int.Parse(args.Parameters[1]);
+            Players.ManipulateLevel(p.name, lvl);
+            dbManager.ManipulateLevel(p.name, lvl);
+            args.Player.SendSuccessMessage($"You have set {p.name}'s level to {lvl}!");
+            return;
         }
 
         private void CurrentChallenge(CommandArgs args)
@@ -1291,6 +1368,19 @@ namespace AverageTerrariaMain
             TShock.ItemBans.DataModel.RemoveBan(EnglishLanguage.GetItemNameById(item));
         }
 
+        public void Level(CommandArgs args)
+        {
+            if(args.Player.IsLoggedIn == false)
+            {
+                args.Player.SendErrorMessage("You must be logged in to use this command!");
+                return;
+            }
+
+            var lvl = Players.GetByUsername(args.Player.Name).level;
+
+            args.Player.SendMessage($"You are level [c/90EE90:{lvl}!] You need [c/90EE90:{1500*Players.GetByUsername(args.Player.Name).level+Players.GetByUsername(args.Player.Name).level* Players.GetByUsername(args.Player.Name).level-SimpleEcon.PlayerManager.GetPlayer(args.Player.Name).balance} XP] to level up!", Color.LightGoldenrodYellow);
+        }
+
         void AntiRush()
         {
             // reset has only been around for less than a day
@@ -1363,6 +1453,24 @@ namespace AverageTerrariaMain
         }
 
 
+        void applyStats(TSPlayer ply)
+        {
+            var player = Players.GetByUsername(ply.Name);
+
+            ply.TPlayer.statLifeMax += (int)Math.Round(player.level * 1.4);
+            ply.TPlayer.statManaMax += (int)Math.Round(player.level * 2.5);
+            ply.TPlayer.lifeRegen += (int)Math.Round(player.level * 0.25);
+            ply.TPlayer.jump += (int)Math.Round(player.level * 0.25);
+            ply.TPlayer.statDefense += (int)Math.Round(player.level * 0.25);
+            ply.TPlayer.pickSpeed += (int)Math.Round(player.level * 0.25);
+            ply.TPlayer.maxMinions += (int)Math.Round(player.level * 0.25);
+            ply.TPlayer.meleeSpeed += (int)Math.Round(player.level * 0.4);
+            ply.TPlayer.moveSpeed += (int)Math.Round(player.level * 0.5);
+            ply.TPlayer.maxRunSpeed += (int)Math.Round(player.level * 0.75);
+            ply.TPlayer.luck += (int)Math.Round(player.level * 1);
+
+        }
+
         void onGreet(GreetPlayerEventArgs args)
         {
             AntiRush();
@@ -1372,18 +1480,14 @@ namespace AverageTerrariaMain
             var player = Players.GetByUsername(ply.Name);
 
             player.level = dbManager.RetrieveUserLevel(ply);
-            player.level = 100;
             if(player.level == 404.404f)
             {
                 dbManager.InsertLevel(ply);
             }
 
-            ply.TPlayer.statLifeMax += (int)Math.Round(player.level*1.4);
-            ply.TPlayer.statManaMax += (int)Math.Round(player.level * 2.5);
-            ply.TPlayer.lifeRegen += (int)Math.Round(player.level * 0.25);
-            ply.TPlayer.meleeDamage += (int)Math.Round(player.level * 0.25);
-            ply.TPlayer.maxMinions += (int)Math.Round(player.level * 0.25);
-            ply.TPlayer.meleeSpeed += (int)Math.Round(player.level * 0.4);
+            applyStats(ply);
+
+ 
 
             NetMessage.SendData((int)PacketTypes.PlayerHp, -1, -1, NetworkText.Empty, ply.Index, 0f, 0f, 0f, 0);
 
