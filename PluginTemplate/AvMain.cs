@@ -46,7 +46,7 @@ namespace AverageTerrariaMain
         public static bool restaurantOpen = false;
         public static string restaurantName = "The Chef's Diner";
 
-        public static List<Tuple<TSPlayer, string>> orders = new List<Tuple<TSPlayer, string>>();
+        public static List<Tuple<TSPlayer, string, int>> orders = new List<Tuple<TSPlayer, string, int>>();
         public static List<TSPlayer> chefs = new List<TSPlayer>();
         public static List<TSPlayer> chefApplicants = new List<TSPlayer>();
         public static TSPlayer HeadChef = null;
@@ -554,7 +554,7 @@ namespace AverageTerrariaMain
             }
         }
 
-        void SendToChefs(int type, Tuple<TSPlayer, string> order)
+        void SendToChefs(int type, Tuple<TSPlayer, string, int> order)
         {
 
             if(type == 0)
@@ -567,7 +567,7 @@ namespace AverageTerrariaMain
 
         }
 
-        void SendToChefs(int type, Tuple<TSPlayer, string> order, TSPlayer playerTakingOrder)
+        void SendToChefs(int type, Tuple<TSPlayer, string, int> order, TSPlayer playerTakingOrder)
         {
 
             if (type == 1)
@@ -705,7 +705,7 @@ namespace AverageTerrariaMain
             Player.SendMessage($"(Order Num. {Chef.order}) You successfully served the {Order.Item2} to {Order.Item1.Name}. You've earned {dolla} dollas!", Color.Orange);
             Chef.order = 0;
             Chef.serving = false;
-            Order.Item1.GiveItem(TShock.Utils.GetItemByName(Order.Item2)[0].netID, 1);
+            Order.Item1.GiveItem(TShock.Utils.GetItemByName(Order.Item2)[0].netID, Order.Item3);
             Order.Item1.SendMessage($"Your food has been served by {Chef.name}! Enjoy :D! If you're feeling generous, tip them for their service with /pay!", Color.Green);
             SendToChefs(2, Order, Player);
             orders.RemoveAt(Chef.order);
@@ -716,58 +716,6 @@ namespace AverageTerrariaMain
         void Menu(CommandArgs args)
         {
             TSPlayer Player = args.Player;
-
-            if(args.Parameters.Count > 1)
-            {
-                var HeadChef = TSPlayer.FindByNameOrID("Evauation")[0];
-              if (Player == HeadChef || Players.GetByUsername(Player.Name).isChef == true)
-                {
-                    Player.SendErrorMessage("You cannot order from the restaurant and be working at the restaurant!");
-                    return;
-                }
-                if (args.Parameters[1] == null)
-                {
-                    Player.SendErrorMessage("Check out the /menu to see a list of the foods you can order!");
-                    return;
-                }
-                if (Player.CurrentRegion.Name != "lobby")
-                {
-                    Player.SendErrorMessage("You must be in the restaurant to order food!");
-                    return;
-                }
-                if (orders.Any(x => x.Item1.Name == Player.Name))
-                {
-                    Player.SendErrorMessage("You cannot make two orders at the same time! Wait for your current food!");
-                    return;
-                }
-                string requestedFood = args.Parameters[1].ToLower();
-                var price = 0;
-
-                foreach(Food item in Config.Menu)
-                {
-                    if (item.aliases.Contains(requestedFood) == true)
-                    {
-                        price = item.price;
-                        requestedFood = item.terrariaName;
-
-                        if (SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance < item.price)
-                        {
-                            Player.SendErrorMessage($"You do not have enough dollas to order this food! ({item.price} $ needed)");
-                            return;
-                        }
-
-                        SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance -= item.price;
-                        var order = new Tuple<TSPlayer, string>(Player, requestedFood);
-                        orders.Add(order);
-                        SendToChefs(0, order);
-                        Player.SendInfoMessage($"Your order has placed for a {requestedFood}! Please seat yourself and wait for a chef to prepare your food!");
-                        return;
-
-                    }
-                }
-                args.Player.SendErrorMessage("That food item does not exist! Check out our menu with /menu");
-                return;
-            }
 
             Player.SendInfoMessage("Menu for The Chef's Diner");
             foreach(Food food in Config.Menu)
@@ -850,6 +798,35 @@ namespace AverageTerrariaMain
                     return;
                 case "request":
                 case "order":
+                    if(args.Parameters.Count == 2 && args.Parameters[1] == "list")
+                    {
+                        if (Players.GetByUsername(args.Player.Name).isChef == true) {
+                            args.Player.SendMessage("List of Active Orders: ", Color.Orange);
+
+                            foreach (Tuple<TSPlayer,string,int> t in orders)
+                            {
+                                args.Player.SendMessage($"[ID: {orders.IndexOf(t)}] {t.Item1.Name} ordered {t.Item2}", Color.LightGreen);
+                            }
+                            return;
+                        }
+                        else
+                        {
+                            args.Player.SendErrorMessage("You are not a chef!");
+                            return;
+                        }
+                    }
+
+                    int quantity = 1;
+                    if(args.Parameters.Count == 3)
+                    {
+                        var succeeded = int.TryParse(args.Parameters[2], out quantity);
+                        if(succeeded == false)
+                        {
+                            quantity = 1;
+                        }
+
+                    }
+
                     if (Player == HeadChef || Players.GetByUsername(Player.Name).isChef == true)
                     {
                         Player.SendErrorMessage("You cannot order from the restaurant and be working at the restaurant!");
@@ -877,7 +854,7 @@ namespace AverageTerrariaMain
                     {
                         if (item.aliases.Contains(requestedFood) == true)
                         {
-                            price = item.price;
+                            price = item.price * quantity;
                             requestedFood = item.terrariaName;
 
                             if (SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance < item.price)
@@ -887,7 +864,7 @@ namespace AverageTerrariaMain
                             }
 
                             SimpleEcon.PlayerManager.GetPlayer(Player.Name).balance -= item.price;
-                            var order = new Tuple<TSPlayer, string>(Player, requestedFood);
+                            var order = new Tuple<TSPlayer, string, int>(Player, requestedFood, quantity);
                             orders.Add(order);
                             SendToChefs(0, order);
                             Player.SendInfoMessage($"Your order has placed for a {requestedFood}! Please seat yourself and wait for a chef to prepare your food!");
@@ -984,7 +961,7 @@ namespace AverageTerrariaMain
             Commands.ChatCommands.Add(new Command("av.bounty", Challenge, "challenges"));
             Commands.ChatCommands.Add(new Command("av.bounty", CurrentChallenge, "currentchallenge"));
 
-            Commands.ChatCommands.Add(new Command("av.bounty", Menu, "order"));
+            Commands.ChatCommands.Add(new Command("av.bounty", OrderFood, "order"));
             Commands.ChatCommands.Add(new Command("av.bounty", Prep, "prep", "prepare"));
             Commands.ChatCommands.Add(new Command("av.bounty", Cook, "cook"));
             Commands.ChatCommands.Add(new Command("av.bounty", Plate, "plate"));
@@ -1009,6 +986,11 @@ namespace AverageTerrariaMain
 
         }
 
+        private void OrderFood(CommandArgs args)
+        {
+            args.Parameters.Insert(0, "order");
+            Chef(args);
+        }
         private void SetLevel(CommandArgs args)
         {
             if(args.Parameters.Count == 0)
@@ -1134,7 +1116,7 @@ namespace AverageTerrariaMain
             var avp = Players.GetByUsername(args.Player.Name);
 
             Item item = args.Player.SelectedItem;
-            if (item == null)
+            if (item.IsAir)
             {
                 args.Player.SendMessage("You must be holding an item!", Color.IndianRed);
                 return;
