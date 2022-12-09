@@ -19,6 +19,8 @@ using System.Linq.Expressions;
 using System.Linq;
 using TShockAPI.Hooks;
 using Steamworks;
+using static AverageTerrariaSurvival.Challenge;
+using Org.BouncyCastle.Asn1.Cmp;
 
 namespace AverageTerrariaMain
 {
@@ -118,6 +120,7 @@ namespace AverageTerrariaMain
 
             if(dateTime.Subtract(lastChecked).Seconds > 4)
             {
+                CheckChallenges();
                 lastChecked = DateTime.Now;
                 foreach(TSPlayer p in TShock.Players)
                 {
@@ -135,7 +138,7 @@ namespace AverageTerrariaMain
                         continue;
                     }
 
-                    if (SimpleEcon.PlayerManager.GetPlayer(p.Name).balance >= 1500*Players.GetByUsername(p.Name).level+(Players.GetByUsername(p.Name).level* Players.GetByUsername(p.Name).level))
+                    if (SimpleEcon.PlayerManager.GetPlayer(p.Name).balance >= (9610 * Players.GetByUsername(p.Name).level) -7500)
                     {
                         
                         dbManager.LevelUp(p.Name);
@@ -1013,6 +1016,32 @@ namespace AverageTerrariaMain
             return;
         }
 
+        private void CheckChallenges()
+        {
+            foreach (IChallenge c in ChallengeList)
+            {
+                foreach(TSPlayer p in TShock.Players)
+                {
+                    if(p.IsLoggedIn == true)
+                    {
+                        bool yes = dbManager.HasUserCompletedChallenge(c.InternalId, p);
+                        if(yes == true)
+                        {
+                            continue;
+                        }
+                        else
+                        {
+                            c.CheckCompleted(p);
+                        }
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                }
+            }
+        }
+
         private void CurrentChallenge(CommandArgs args)
         {
             if(args.Player.IsLoggedIn == false)
@@ -1020,41 +1049,39 @@ namespace AverageTerrariaMain
                 args.Player.SendErrorMessage("You must be logged-in to use this command! :>");
                 return;
             }
-            var chal = ChallengeMaster.GetMostRecentChallenge(Config);
+            var chal = GetMostRecentChallenge();
             
             
-            if(dbManager.HasUserCompletedChallenge(chal.internalId, args.Player))
+            if(dbManager.HasUserCompletedChallenge(chal.InternalId, args.Player))
             {
                 args.Player.SendMessage("You have already completed the latest challenge! Good job! :>", Color.LightGreen);
-                args.Player.SendMessage($"{chal.name} - {chal.desc} ✓ (${chal.totalValue} value)", Color.Goldenrod);
+                args.Player.SendMessage($"✓ {chal.Name} - {chal.Description}", Color.Goldenrod);
                 return;
             }
             else
             {
-                args.Player.SendMessage($"New Challenge: {chal.name}", Color.Goldenrod);
-                args.Player.SendMessage($"{chal.desc}", Color.LightGray);
-                args.Player.SendMessage($"If completed you will get: {chal.totalValue} dollas worth of rewards!", Color.Goldenrod);
+                args.Player.SendMessage($"New Challenge: {chal.Name}", Color.Goldenrod);
+                args.Player.SendMessage($"{chal.Description}", Color.LightGray);
                 return;
             }
         }
 
         private void Challenge(CommandArgs args)
         {
-
-            if(Config.challenges.Count > 0)
+            if(ChallengeList.Count > 0)
             {
                 args.Player.SendMessage("List of Challenges!", Color.Orange);
-                foreach (Challenge chal in Config.challenges)
+                foreach (IChallenge chal in ChallengeList)
                 {
-                    var userCompleted = dbManager.HasUserCompletedChallenge(chal.internalId, args.Player);
+                    var userCompleted = dbManager.HasUserCompletedChallenge(chal.InternalId, args.Player);
 
                     if(userCompleted == true)
                     {
-                        args.Player.SendMessage($"{chal.name} - {chal.desc} ✓", Color.LightGreen);
+                        args.Player.SendMessage($"✓ {chal.Name} - {chal.Description}", Color.LightGreen);
                     }
                     else
                     {
-                        args.Player.SendMessage($"{chal.name} - {chal.desc} -", Color.OrangeRed);
+                        args.Player.SendMessage($"✖ {chal.Name} - {chal.Description}", Color.OrangeRed);
                     }
 
                 }
@@ -1449,7 +1476,7 @@ namespace AverageTerrariaMain
             ply.TPlayer.meleeSpeed += (int)Math.Round(player.level * 0.4);
             ply.TPlayer.moveSpeed += (int)Math.Round(player.level * 0.5);
             ply.TPlayer.maxRunSpeed += (int)Math.Round(player.level * 0.75);
-            ply.TPlayer.luck += (int)Math.Round(player.level * 1);
+            ply.TPlayer.luck += (int)Math.Round(player.level * 0.001);
 
         }
 

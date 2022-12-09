@@ -83,7 +83,7 @@ namespace AverageTerrariaSurvival
             return _db.Query("INSERT INTO ClanRegions (ClanName, RegionName) VALUES (@0, @1)", clan.name, regionName) != 0;
         }
 
-        public bool InsertChallenge(string challengeId, TSPlayer Player)
+        public bool InsertChallenge(int challengeId, TSPlayer Player)
         {
             return _db.Query("INSERT INTO Challenges (ChallengeId, PlayerName) VALUES (@0, @1)", challengeId, Player.Name) != 0;
         }

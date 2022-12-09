@@ -1,26 +1,26 @@
 ﻿using AverageTerrariaMain;
+using AverageTerrariaSurvival.Challenges;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TShockAPI;
 
 namespace AverageTerrariaSurvival
 {
-    public static class ChallengeMaster
+    public static class Challenge
     {
-        public static Challenge GetChallengeInfo(Config cfg, int cid)
+        public static List<IChallenge> ChallengeList = new List<IChallenge>()
         {
-            var x = cfg.challenges.FirstOrDefault(x => x.internalId == cid);
+            FindDiamonds
+        };
 
-            return x;
-        }
+        public static FindDiamonds FindDiamonds = new FindDiamonds();
 
-        public static Challenge GetMostRecentChallenge(Config cfg)
+        public static IChallenge GetMostRecentChallenge()
         {
-            var x = cfg.challenges[cfg.challenges.Count - 1];
-
-            return x;
+            return ChallengeList.Last();
         }
     }
 
@@ -37,34 +37,15 @@ namespace AverageTerrariaSurvival
         }
     }
 
-    public class Challenge
+
+
+    public interface IChallenge
     {
-        public string name { get; set; }
-        public int internalId { get; set; }
-
-        //description
-        public string desc { get; set; }
-
-        public List<Reward> rewards = new List<Reward> { new Reward("Testing", "", 1) };
-
-        public int totalValue { get
-            {
-                var val = 0;
-                foreach(Reward r in rewards)
-                {
-                    val += r.value;
-                }
-                return val;
-            } }
-
-        public Challenge(string n, int iid, string d, List<Reward> r) {
-            this.name = n;
-            this.internalId = iid;
-            this.desc = d;
-            this.rewards = r;
-        
-        }
-
+        public string Name { get; set; }
+        public int InternalId { get; set; }
+        public string Description { get; set; }
+        public abstract void CheckCompleted(TSPlayer p);
+        public abstract void RewardOnComplete(TSPlayer p);
 
     }
 }

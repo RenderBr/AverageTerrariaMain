@@ -14,8 +14,6 @@ namespace AverageTerrariaMain
 	{
 		public List<string> infoMessages { get; set; } = new List<string>();
 
-		public List<Challenge> challenges { get; set; } = new List<Challenge>();
-
 		public List<Food> Menu { get; set; } = new List<Food>() { new Food(120, "Golden Delight", new List<string>() {"golden delight", "gd", "goldendelight" } )} ;
 		public DateTime startDate { get; set; } = DateTime.UtcNow;
 		public string discordMessage { get; set; } = "Insert discord here!";
