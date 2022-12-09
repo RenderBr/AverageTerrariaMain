@@ -47,6 +47,7 @@ namespace AverageTerrariaMain
         public readonly string name;
         public List<BrokenBlock> blocksBroken = new List<BrokenBlock>();
         public bool isVanished = false;
+
         public string Group
         {
             get { return !Online ? TShock.UserAccounts.GetUserAccountByName(name).Group : tsPlayer.Group.Name; }

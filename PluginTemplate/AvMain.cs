@@ -63,7 +63,7 @@ namespace AverageTerrariaMain
         public override string Description => "Provide's some functionality for Average's Terraria server.";
         public AvMain(Terraria.Main game) : base(game)
         {
-            Order = 1;
+            base.Order = 3;
         }
         #endregion
         #region initPlugin & hooks
@@ -171,8 +171,7 @@ namespace AverageTerrariaMain
 			Commands.ChatCommands.Add(new Command("av.admin", adminAbout, "ab", "adminab", "adminabout"));
 			Commands.ChatCommands.Add(new Command("av.helper", Freeze, "f", "freeze"));
 			Commands.ChatCommands.Add(new Command("av.jmunlock", journeyUnlockAll, "researchall", "jmunlock"));
-
-			Commands.ChatCommands.Add(new Command("av.info", aboutCommand, "about"));
+            Commands.ChatCommands.Add(new Command("av.info", aboutCommand, "about"));
 
 			Commands.ChatCommands.Add(new Command("av.admin", triggerCg, "chatgame", "cg"));
 			cg.Occuring = false;
@@ -291,7 +290,7 @@ namespace AverageTerrariaMain
 					TSPlayer.All.SendData(PacketTypes.ProjectileNew, "", i);
 				}
 			}
-			TSPlayer.Server.SetTime(true, 0.0);
+			TSPlayer.Server.SetTime(false, 0.0);
 		}
         #endregion
 
@@ -448,9 +447,11 @@ namespace AverageTerrariaMain
 
 
 		}
-		#endregion
+        #endregion
 
-		#region user utilities
+        #region user utilities
+
+
 		void fightCommand(CommandArgs args)
 		{
 			if (args.Player.CurrentRegion == null)
