@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TShockAPI;
 
-namespace AverageTerrariaSurvival
+namespace Challenges
 {
     public static class Challenge
     {

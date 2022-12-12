@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Terraria;
 using TShockAPI;
 
-namespace AverageTerrariaSurvival.Challenges
+namespace Challenges
 {
     public class FindDiamonds : IChallenge
     {

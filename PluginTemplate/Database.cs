@@ -139,7 +139,7 @@ namespace AverageTerrariaSurvival
 
         public bool HasUserCompletedChallenge(int c, TSPlayer p)
         {
-            using (var reader = _db.QueryReader($"SELECT * FROM Challenges WHERE playerName={p.Name}"))
+            using (var reader = _db.QueryReader($"SELECT * FROM Challenges WHERE PlayerName={p.Name} AND ChallengeId={c}"))
             {
                 while (reader.Read())
                 {

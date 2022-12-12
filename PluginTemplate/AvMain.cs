@@ -19,8 +19,8 @@ using System.Linq.Expressions;
 using System.Linq;
 using TShockAPI.Hooks;
 using Steamworks;
-using static AverageTerrariaSurvival.Challenge;
 using Org.BouncyCastle.Asn1.Cmp;
+using Challenges;
 
 namespace AverageTerrariaMain
 {
@@ -120,8 +120,7 @@ namespace AverageTerrariaMain
 
             if(dateTime.Subtract(lastChecked).Seconds > 4)
             {
-                CheckChallenges();
-                lastChecked = DateTime.Now;
+
                 foreach(TSPlayer p in TShock.Players)
                 {
                     if(p == null)
@@ -151,6 +150,8 @@ namespace AverageTerrariaMain
                         goto Redo;
                     }
                 }
+//                CheckChallenges();
+                lastChecked = DateTime.Now;
             }
 
 
@@ -1018,7 +1019,26 @@ namespace AverageTerrariaMain
 
         private void CheckChallenges()
         {
-            foreach (IChallenge c in ChallengeList)
+            foreach (TSPlayer p in TShock.Players)
+            {
+                if (Players.GetByUsername(p.Name) == null)
+                {
+                    continue;
+                }
+                if(p.IsLoggedIn == false)
+                {
+                    continue;
+                }
+
+                AvPlayer player = Players.GetByUsername(p.Name);
+
+                foreach (IChallenge c in Challenges.Challenge.ChallengeList)
+                {
+
+                }
+            }
+
+            foreach (IChallenge c in Challenges.Challenge.ChallengeList)
             {
                 foreach(TSPlayer p in TShock.Players)
                 {
@@ -1027,11 +1047,11 @@ namespace AverageTerrariaMain
                         bool yes = dbManager.HasUserCompletedChallenge(c.InternalId, p);
                         if(yes == true)
                         {
-                            continue;
+                            c.CheckCompleted(p);
                         }
                         else
                         {
-                            c.CheckCompleted(p);
+                            continue;
                         }
                     }
                     else
@@ -1049,7 +1069,7 @@ namespace AverageTerrariaMain
                 args.Player.SendErrorMessage("You must be logged-in to use this command! :>");
                 return;
             }
-            var chal = GetMostRecentChallenge();
+            var chal = Challenges.Challenge.GetMostRecentChallenge();
             
             
             if(dbManager.HasUserCompletedChallenge(chal.InternalId, args.Player))
@@ -1068,10 +1088,10 @@ namespace AverageTerrariaMain
 
         private void Challenge(CommandArgs args)
         {
-            if(ChallengeList.Count > 0)
+            if(Challenges.Challenge.ChallengeList.Count > 0)
             {
                 args.Player.SendMessage("List of Challenges!", Color.Orange);
-                foreach (IChallenge chal in ChallengeList)
+                foreach (IChallenge chal in Challenges.Challenge.ChallengeList)
                 {
                     var userCompleted = dbManager.HasUserCompletedChallenge(chal.InternalId, args.Player);
 
@@ -1331,6 +1351,11 @@ namespace AverageTerrariaMain
             }
 
             var bountyPrice = int.Parse(b.Parameters[1]);
+            if(bountyPrice <= 0)
+            {
+                b.Player.SendMessage("Psh... nice try nerd. This has been patched - Average :>", Color.MediumVioletRed);
+                return;
+            }
             var bountied = b.Parameters[0];
             TSPlayer player;
 
@@ -1464,19 +1489,27 @@ namespace AverageTerrariaMain
 
         void applyStats(TSPlayer ply)
         {
-            var player = Players.GetByUsername(ply.Name);
+            if (Players.GetByUsername(ply.Name).level == 404.404 || Players.GetByUsername(ply.Name).level == 0)
+            {
+                return;
+            }
+            else
+            {
+                var player = Players.GetByUsername(ply.Name);
 
-            ply.TPlayer.statLifeMax += (int)Math.Round(player.level * 1.4);
-            ply.TPlayer.statManaMax += (int)Math.Round(player.level * 2.5);
-            ply.TPlayer.lifeRegen += (int)Math.Round(player.level * 0.25);
-            ply.TPlayer.jump += (int)Math.Round(player.level * 0.25);
-            ply.TPlayer.statDefense += (int)Math.Round(player.level * 0.25);
-            ply.TPlayer.pickSpeed += (int)Math.Round(player.level * 0.25);
-            ply.TPlayer.maxMinions += (int)Math.Round(player.level * 0.25);
-            ply.TPlayer.meleeSpeed += (int)Math.Round(player.level * 0.4);
-            ply.TPlayer.moveSpeed += (int)Math.Round(player.level * 0.5);
-            ply.TPlayer.maxRunSpeed += (int)Math.Round(player.level * 0.75);
-            ply.TPlayer.luck += (int)Math.Round(player.level * 0.001);
+                ply.TPlayer.statLifeMax += (int)Math.Round(player.level * 1.4);
+                ply.TPlayer.statManaMax += (int)Math.Round(player.level * 2.5);
+                ply.TPlayer.lifeRegen += (int)Math.Round(player.level * 0.25);
+                ply.TPlayer.jump += (int)Math.Round(player.level * 0.25);
+                ply.TPlayer.statDefense += (int)Math.Round(player.level * 0.25);
+                ply.TPlayer.pickSpeed += (int)Math.Round(player.level * 0.25);
+                ply.TPlayer.maxMinions += (int)Math.Round(player.level * 0.25);
+                ply.TPlayer.meleeSpeed += (int)Math.Round(player.level * 0.4);
+                ply.TPlayer.moveSpeed += (int)Math.Round(player.level * 0.5);
+                ply.TPlayer.maxRunSpeed += (int)Math.Round(player.level * 0.75);
+                ply.TPlayer.luck += (int)Math.Round(player.level * 0.001);
+
+            }
 
         }
 
