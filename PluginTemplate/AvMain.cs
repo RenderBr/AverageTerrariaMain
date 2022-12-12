@@ -21,6 +21,7 @@ using TShockAPI.Hooks;
 using Steamworks;
 using Org.BouncyCastle.Asn1.Cmp;
 using Challenges;
+using IL.Terraria.DataStructures;
 
 namespace AverageTerrariaMain
 {
@@ -178,12 +179,25 @@ namespace AverageTerrariaMain
 
         public void KillMeEvent(Object sender, GetDataHandlers.KillMeEventArgs args)
         {
+            if(args is null)
+            {
+                return;
+            }
+
             short damage = args.Damage;
             short id = args.PlayerId;
             var deathReason = args.PlayerDeathReason;
+            if (deathReason._sourcePlayerIndex > TShock.Players.Count())
+            {
+                return;
+            }
             TSPlayer enemyPlayer = TShock.Players[deathReason._sourcePlayerIndex];
 
             if (enemyPlayer == null)
+            {
+                return;
+            }
+            if(args.Player.IsLoggedIn == false)
             {
                 return;
             }
@@ -193,6 +207,10 @@ namespace AverageTerrariaMain
                 SimpleEcon.PlayerManager.GetPlayer(enemyPlayer.Name).balance += Players.GetByUsername(args.Player.Name).bountyPrice;
                 Players.GetByUsername(args.Player.Name).isBountied = false;
                 TSPlayer.All.SendMessage(enemyPlayer.Name + " has claimed the bounty on " + args.Player.Name + " and won " + Players.GetByUsername(args.Player.Name).bountyPrice + " dollas!", Color.IndianRed);
+            }
+            else
+            {
+                return;
             }
         }
 
